@@ -121,6 +121,8 @@ Les capacités ci-dessous décrivent les objectifs du projet ; elles ne signifie
 
 ## Architecture
 
+[Architecture détaillée](doc/Architecture.fr.md)
+
 ```text
 Référentiels géographiques
              |
