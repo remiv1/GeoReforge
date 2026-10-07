@@ -1,8 +1,15 @@
 # GeoReforge
 
-**Transformez des référentiels géographiques en zones métier exploitables.**
+<img src="./doc/logo.png" alt="GeoReforge" width="72" align="left"> <strong>Transformez des référentiels géographiques en zones métier exploitables.</strong><br clear="left">
 
 Français | [English](README.md)
+
+[![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-web_framework-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
+[![Gunicorn](https://img.shields.io/badge/Gunicorn-WSGI_server-499848)](https://gunicorn.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-default_database-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Docker](https://img.shields.io/badge/Docker-container-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
 GeoReforge est un moteur open source conçu pour construire, transformer et versionner des zones géographiques métier à partir de référentiels géographiques publics.
 
