@@ -1,0 +1,29 @@
+FROM docker.io/python:3.14-slim-bookworm
+
+WORKDIR /app
+
+ARG UID=1000
+ARG GID=1000
+
+RUN groupadd -g ${GID} appuser && \
+    useradd -m -u ${UID} -g ${GID} appuser
+
+COPY env.conf /etc/app/env.conf
+COPY config.yaml /etc/app/config.yaml
+
+RUN mkdir -p /var/lib/app && \
+    touch /var/lib/app/database.db && \
+    chown appuser:appuser /var/lib/app/database.db
+
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY api/ .
+
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+USER appuser
+
+ENTRYPOINT ["sh", "/app/entrypoint.sh"]

@@ -155,3 +155,58 @@ GIS tools, APIs, and databases
 - open-source projects.
 
 **GeoReforge does not aim to replace existing geographic datasets. Its goal is to turn them into business-ready geographic references that organizations can use and maintain.**
+
+## Usage
+
+There are several ways to use GeoReforge.
+
+### Run
+
+To run GeoReforge with Docker, use the following command:
+
+```sh
+docker run --rm -v $(pwd)/database:/var/lib/app georeforge:latest
+```
+
+This starts a local GeoReforge instance and persists the database in the `database` directory on your machine.
+
+You can also mount the `config.yaml` configuration file or the `env.conf` environment file as follows:
+
+```sh
+docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/config.yaml:/etc/app/config.yaml -v $(pwd)/env.conf:/etc/app/env.conf georeforge:latest
+```
+
+To run the Docker image as a specific user, add the `--user $(id -u):$(id -g)` option to the `docker run` command.
+
+### Build
+
+To use specific user and group IDs for `appuser` in the container, pass the `UID` and `GID` build arguments when building the Docker image:
+
+```sh
+docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t georeforge:latest .
+```
+
+You can then run the built image with the `docker run` command described above.
+
+### Docker Compose
+
+You can add GeoReforge to a `docker-compose.yaml` file as follows:
+
+```yaml
+services:
+  georeforge:
+    image: georeforge:latest
+    volumes:
+      - ./database:/var/lib/app
+      - ./config.yaml:/etc/app/config.yaml
+      - ./env.conf:/etc/app/env.conf
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USER: ${DB_USER}
+      DB_NAME: ${DB_NAME}
+      DB_SCHEMA: ${DB_SCHEMA}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+```
+
+Define the environment variables in a `.env` file at the root of your project, and create a `config.yaml` file based on the [configuration template](./src/config.yaml).

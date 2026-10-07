@@ -155,3 +155,58 @@ Référentiels géographiques
 - projets open source.
 
 **GeoReforge ne cherche pas à remplacer les référentiels géographiques existants. Son objectif est de les transformer en référentiels métier exploitables et maintenables par les organisations.**
+
+## Utilisation
+
+Pour utiliser GeoReforge, plusieurs cas de figure sont à envisager.
+
+### RUN
+
+Pour exécuter GeoReforge en utilisant Docker, vous pouvez utiliser la commande suivante :
+
+```sh
+docker run --rm -v $(pwd)/database:/var/lib/app georeforge:latest
+```
+
+Vous avez alors une instance GeoReforge en local et la base de données est persistée dans le répertoire `database` de votre machine.
+
+Vous avez aussi possibilité de monter en volume le fichier de configuration `config.yaml` ou le fichier d'environnement `env.conf` de la manière suivante :
+
+```sh
+docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/config.yaml:/etc/app/config.yaml -v $(pwd)/env.conf:/etc/app/env.conf georeforge:latest
+```
+
+Vous avez toutefois possibilité d'utiliser un utilisateur spécifique pour exécuter l'image Docker en ajoutant l'option `--user $(id -u):$(id -g)` à la commande `docker run`.
+
+### BUILD
+
+Si vous souhaitez utiliser un ID utilisateur et un ID de groupe spécifiques pour l'utilisateur `appuser` dans le conteneur, vous pouvez passer les arguments `UID` et `GID` lors de la construction de l'image Docker :
+
+```sh
+docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t georeforge:latest .
+```
+
+Vous pouvez ensuite exécuter l'image construite avec la commande `docker run` comme décrit dans la section RUN.
+
+### Intégration dans un compose
+
+Vous pouvez intégrer GeoReforge dans un fichier `docker-compose.yaml` de la manière suivante :
+
+```yaml
+services:
+  georeforge:
+    image: georeforge:latest
+    volumes:
+      - ./database:/var/lib/app
+      - ./config.yaml:/etc/app/config.yaml
+      - ./env.conf:/etc/app/env.conf
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USER: ${DB_USER}
+      DB_NAME: ${DB_NAME}
+      DB_SCHEMA: ${DB_SCHEMA}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+```
+
+Il vous faudra définir les variables d'environnement dans un fichier .env à la racine de votre projet ainsi que le fichier `config.yaml` suivant le modèle dans [config.yaml](./src/config.yaml).
