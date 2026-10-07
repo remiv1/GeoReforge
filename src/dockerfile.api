@@ -2,6 +2,15 @@ FROM docker.io/python:3.14-slim-bookworm
 
 WORKDIR /app
 
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+        sqlite3 \
+        libsqlite3-mod-spatialite \
+        libsqlite3-dev \
+        gcc && \
+    rm -rf /var/lib/apt/lists/*
+
 ARG UID=1000
 ARG GID=1000
 
@@ -9,17 +18,17 @@ RUN groupadd -g ${GID} appuser && \
     useradd -m -u ${UID} -g ${GID} appuser
 
 COPY env.conf /etc/app/env.conf
-COPY config.yaml /etc/app/config.yaml
+COPY config.py /etc/app/config.py
 
 RUN mkdir -p /var/lib/app && \
     touch /var/lib/app/database.db && \
-    chown appuser:appuser /var/lib/app/database.db
+    chown -R appuser:appuser /var/lib/app
 
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-COPY api/ .
+COPY api/ /app/api/
 
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh

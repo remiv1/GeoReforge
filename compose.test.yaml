@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: docker.io/postgis/postgis:17-3.5
+    environment:
+      POSTGRES_DB: georeforge_test
+      POSTGRES_USER: georeforge_test
+      POSTGRES_PASSWORD: ${GEOREFORGE_TEST_PASSWORD:?Set a disposable test password}
+    ports:
+      - "127.0.0.1:55432:5432"
+
+  mysql:
+    image: docker.io/library/mysql:8.4
+    environment:
+      MYSQL_DATABASE: georeforge_test
+      MYSQL_USER: georeforge_test
+      MYSQL_PASSWORD: ${GEOREFORGE_TEST_PASSWORD:?Set a disposable test password}
+      MYSQL_ROOT_PASSWORD: ${GEOREFORGE_TEST_PASSWORD:?Set a disposable test password}
+    ports:
+      - "127.0.0.1:53306:3306"
+
+  mariadb:
+    image: docker.io/library/mariadb:11.8
+    environment:
+      MARIADB_DATABASE: georeforge_test
+      MARIADB_USER: georeforge_test
+      MARIADB_PASSWORD: ${GEOREFORGE_TEST_PASSWORD:?Set a disposable test password}
+      MARIADB_ROOT_PASSWORD: ${GEOREFORGE_TEST_PASSWORD:?Set a disposable test password}
+    ports:
+      - "127.0.0.1:53307:3306"

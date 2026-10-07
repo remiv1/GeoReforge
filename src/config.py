@@ -1,0 +1,11 @@
+"""Configuration file for the Gunicorn server."""
+bind = "0.0.0.0:8000"   # pylint: disable=C0103
+workers = 4   # pylint: disable=C0103
+worker_class = "sync"   # pylint: disable=C0103
+timeout = 30   # pylint: disable=C0103
+keepalive = 5   # pylint: disable=C0103
+loglevel = "info"   # pylint: disable=C0103
+accesslog = "-"   # pylint: disable=C0103
+errorlog = "-"   # pylint: disable=C0103
+graceful_timeout = 30   # pylint: disable=C0103
+reload = False   # pylint: disable=C0103

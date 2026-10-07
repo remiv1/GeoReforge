@@ -169,6 +169,8 @@ GIS tools, APIs, and databases
 
 There are several ways to use GeoReforge.
 
+For using an external database, see the [database preparation guide](doc/DbPrepare.md).
+
 ### Run
 
 To run GeoReforge with Docker, use the following command:
@@ -179,10 +181,10 @@ docker run --rm -v $(pwd)/database:/var/lib/app georeforge:latest
 
 This starts a local GeoReforge instance and persists the database in the `database` directory on your machine.
 
-You can also mount the `config.yaml` configuration file or the `env.conf` environment file as follows:
+You can also mount the `config.py` configuration file or the `env.conf` environment file as follows:
 
 ```sh
-docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/config.yaml:/etc/app/config.yaml -v $(pwd)/env.conf:/etc/app/env.conf georeforge:latest
+docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/config.py:/etc/app/config.py -v $(pwd)/env.conf:/etc/app/env.conf georeforge:latest
 ```
 
 To run the Docker image as a specific user, add the `--user $(id -u):$(id -g)` option to the `docker run` command.
@@ -207,7 +209,7 @@ services:
     image: georeforge:latest
     volumes:
       - ./database:/var/lib/app
-      - ./config.yaml:/etc/app/config.yaml
+      - ./config.py:/etc/app/config.py
       - ./env.conf:/etc/app/env.conf
     environment:
       DB_PASSWORD: ${DB_PASSWORD}
@@ -218,4 +220,4 @@ services:
       DB_PORT: ${DB_PORT}
 ```
 
-Define the environment variables in a `.env` file at the root of your project, and create a `config.yaml` file based on the [configuration template](./src/config.yaml).
+Define the environment variables in a `.env` file at the root of your project, and create a `config.py` file based on the [configuration template](./src/config.py).

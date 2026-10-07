@@ -169,6 +169,8 @@ Référentiels géographiques
 
 Pour utiliser GeoReforge, plusieurs cas de figure sont à envisager.
 
+Pour utiliser une base externe, consultez le [guide de préparation des bases de données](doc/DbPrepare.fr.md).
+
 ### RUN
 
 Pour exécuter GeoReforge en utilisant Docker, vous pouvez utiliser la commande suivante :
@@ -179,10 +181,10 @@ docker run --rm -v $(pwd)/database:/var/lib/app georeforge:latest
 
 Vous avez alors une instance GeoReforge en local et la base de données est persistée dans le répertoire `database` de votre machine.
 
-Vous avez aussi possibilité de monter en volume le fichier de configuration `config.yaml` ou le fichier d'environnement `env.conf` de la manière suivante :
+Vous avez aussi possibilité de monter en volume le fichier de configuration `config.py` ou le fichier d'environnement `env.conf` de la manière suivante :
 
 ```sh
-docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/config.yaml:/etc/app/config.yaml -v $(pwd)/env.conf:/etc/app/env.conf georeforge:latest
+docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/config.py:/etc/app/config.py -v $(pwd)/env.conf:/etc/app/env.conf georeforge:latest
 ```
 
 Vous avez toutefois possibilité d'utiliser un utilisateur spécifique pour exécuter l'image Docker en ajoutant l'option `--user $(id -u):$(id -g)` à la commande `docker run`.
@@ -207,7 +209,7 @@ services:
     image: georeforge:latest
     volumes:
       - ./database:/var/lib/app
-      - ./config.yaml:/etc/app/config.yaml
+      - ./config.py:/etc/app/config.py
       - ./env.conf:/etc/app/env.conf
     environment:
       DB_PASSWORD: ${DB_PASSWORD}
@@ -218,4 +220,4 @@ services:
       DB_PORT: ${DB_PORT}
 ```
 
-Il vous faudra définir les variables d'environnement dans un fichier .env à la racine de votre projet ainsi que le fichier `config.yaml` suivant le modèle dans [config.yaml](./src/config.yaml).
+Il vous faudra définir les variables d'environnement dans un fichier .env à la racine de votre projet ainsi que le fichier `config.py` suivant le modèle dans [config.py](./src/config.py).
