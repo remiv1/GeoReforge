@@ -121,6 +121,8 @@ The following capabilities describe the project's goals; they are not a statemen
 
 ## Architecture
 
+[Detailed architecture](doc/Architecture.md)
+
 ```text
 Geographic datasets
         |
