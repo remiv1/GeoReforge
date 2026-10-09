@@ -171,6 +171,14 @@ Pour utiliser GeoReforge, plusieurs cas de figure sont à envisager.
 
 Pour utiliser une base externe, consultez le [guide de préparation des bases de données](doc/DbPrepare.fr.md).
 
+Pour définir les zones à télécharger, montez en volume le fichier de configuration `zones.toml` dans le conteneur à l'emplacement `/etc/app/zones.toml` de la manière suivante :
+
+```sh
+docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/zones.toml:/etc/app/zones.toml georeforge:latest
+```
+
+Pour créer le fichier `zones.toml`, suivez le guide [zones.toml](doc/Zones.fr.md).
+
 ### RUN
 
 Pour exécuter GeoReforge en utilisant Docker, vous pouvez utiliser la commande suivante :

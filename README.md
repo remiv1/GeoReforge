@@ -171,6 +171,14 @@ There are several ways to use GeoReforge.
 
 For using an external database, see the [database preparation guide](doc/DbPrepare.md).
 
+To define which zones to download, mount the `zones.toml` configuration file in the container at `/etc/app/zones.toml` as follows:
+
+```sh
+docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/zones.toml:/etc/app/zones.toml georeforge:latest
+```
+
+To create the `zones.toml` file, follow the [zones.toml guide](doc/Zones.md).
+
 ### Run
 
 To run GeoReforge with Docker, use the following command:

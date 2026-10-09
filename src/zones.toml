@@ -1,0 +1,18 @@
+# Config file to define zones to download from the source path
+
+source_path = "https://naturalearth.s3.amazonaws.com"
+
+[[data_family.cultural]]
+name = "Countries"
+precision = ["low", "medium", "high"]
+link = "admin_0_countries"
+
+[[data_family.physical]]
+name = "Oceans"
+precision = ["low", "medium", "high"]
+link = "ocean"
+
+[[data_family.physical]]
+name = "Marine Polygons"
+precision = ["low", "medium", "high"]
+link = "geography_marine_polys"
