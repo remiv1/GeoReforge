@@ -19,6 +19,7 @@ RUN groupadd -g ${GID} appuser && \
 
 COPY env.conf /etc/app/env.conf
 COPY config.py /etc/app/config.py
+COPY zones.toml /etc/app/zones.toml
 
 RUN mkdir -p /var/lib/app && \
     touch /var/lib/app/database.db && \
