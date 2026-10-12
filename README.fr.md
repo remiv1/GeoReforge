@@ -1,6 +1,6 @@
 # GeoReforge
 
-<img src="./doc/logo.png" alt="GeoReforge" width="72" align="left"> <strong>Transformez des référentiels géographiques en zones métier exploitables.</strong><br clear="left">
+<img src="./doc/img/logo.png" alt="GeoReforge" width="72" align="left"> <strong>Transformez des référentiels géographiques en zones métier exploitables.</strong><br clear="left">
 
 Français | [English](README.md)
 
@@ -178,6 +178,19 @@ docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/zones.toml:/etc/app/zo
 ```
 
 Pour créer le fichier `zones.toml`, suivez le guide [zones.toml](doc/Zones.fr.md).
+
+### Assistant local de configuration
+
+Une interface en terminal permet de sélectionner les jeux Natural Earth, d’explorer un SHP à la demande, de définir les mappings et de préparer `zones.toml`. Ses dépendances restent séparées de celles de l’API et de l’image Docker :
+
+```sh
+python3.14 -m venv .venv-zones
+. .venv-zones/bin/activate
+python -m pip install -r scripts/zones_maker/requirements.txt
+PYTHONPATH=scripts python -m zones_maker.main
+```
+
+Le téléchargement d’un jeu n’a lieu que lors de son exploration et uniquement si le SHP choisi n’est pas déjà présent dans `tmp/`.
 
 ### RUN
 

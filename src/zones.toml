@@ -1,18 +1,60 @@
-# Config file to define zones to download from the source path
-
 source_path = "https://naturalearth.s3.amazonaws.com"
+
+[data_family]
+raster = []
 
 [[data_family.cultural]]
 name = "Countries"
-precision = ["low", "medium", "high"]
+precision = [
+    "high",
+    "medium",
+    "low",
+]
 link = "admin_0_countries"
 
 [[data_family.physical]]
-name = "Oceans"
-precision = ["low", "medium", "high"]
-link = "ocean"
+name = "Lakes"
+precision = [
+    "high",
+    "medium",
+    "low",
+]
+link = "lakes"
 
 [[data_family.physical]]
-name = "Marine Polygons"
-precision = ["low", "medium", "high"]
-link = "geography_marine_polys"
+name = "Ocean"
+precision = [
+    "high",
+    "medium",
+    "low",
+]
+link = "ocean"
+
+[data_family.mapping.lakes]
+name = "name_en"
+code = "ne_id"
+geometry = "geometry"
+class = "featurecla"
+
+[data_family.mapping.lakes.classes]
+Lake = "Lac"
+Reservoir = "Réservoir"
+"Alkaline Lake" = "Lac Alcalin"
+
+[data_family.mapping.ocean]
+name = "featurecla"
+code = "featurecla"
+geometry = "geometry"
+class = "featurecla"
+
+[data_family.mapping.ocean.classes]
+Ocean = "Océan"
+
+[data_family.mapping.admin_0_countries]
+name = "NAME_LONG"
+code = "ISO_A3"
+geometry = "geometry"
+class = "featurecla"
+
+[data_family.mapping.admin_0_countries.classes]
+"Admin-0 country" = "Pays"

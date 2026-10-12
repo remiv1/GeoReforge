@@ -1,0 +1,1793 @@
+{
+    "cultural": [
+        {
+            "id": "admin_0_antarctic_claim_limit_lines",
+            "name": "Antarctic Claim Limit Lines",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_antarctic_claim_limit_lines",
+            "description": "Lines marking the limits of territorial claims in Antarctica."
+        },
+        {
+            "id": "admin_0_antarctic_claims",
+            "name": "Antarctic Claims",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_antarctic_claims",
+            "description": "Polygons showing territorial claims in Antarctica."
+        },
+        {
+            "id": "admin_0_boundary_lines_disputed_areas",
+            "name": "Boundary Lines Disputed Areas",
+            "precision": [
+                "high",
+                "medium"
+            ],
+            "link_part": "admin_0_boundary_lines_disputed_areas",
+            "description": "Lines showing disputed areas at the country level."
+        },
+        {
+            "id": "admin_0_boundary_lines_land",
+            "name": "Boundary Lines Land",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_0_boundary_lines_land",
+            "description": "Lines showing land borders at the country level."
+        },
+        {
+            "id": "admin_0_boundary_lines_map_units",
+            "name": "Boundary Lines Map Units",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_boundary_lines_map_units",
+            "description": "Lines showing map-unit boundaries at the country level."
+        },
+        {
+            "id": "admin_0_boundary_lines_maritime_indicator",
+            "name": "Boundary Lines Maritime Indicator",
+            "precision": [
+                "high",
+                "medium"
+            ],
+            "link_part": "admin_0_boundary_lines_maritime_indicator",
+            "description": "Lines showing maritime limits at the country level."
+        },
+        {
+            "id": "admin_0_boundary_lines_maritime_indicator_chn",
+            "name": "Boundary Lines Maritime Indicator Chn",
+            "precision": [
+                "high",
+                "medium"
+            ],
+            "link_part": "admin_0_boundary_lines_maritime_indicator_chn",
+            "description": "Lines showing maritime limits at the country level."
+        },
+        {
+            "id": "admin_0_boundary_map_units",
+            "name": "Boundary Map Units",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "admin_0_boundary_map_units",
+            "description": "Map units and their boundaries at the country level."
+        },
+        {
+            "id": "admin_0_breakaway_disputed_areas",
+            "name": "Breakaway Disputed Areas",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "admin_0_breakaway_disputed_areas",
+            "description": "Areas associated with breakaway regions and disputed political status."
+        },
+        {
+            "id": "admin_0_countries_arg",
+            "name": "Countries Arg",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_arg",
+            "description": "Country-boundary variant identified by the source suffix 'arg'."
+        },
+        {
+            "id": "admin_0_countries_bdg",
+            "name": "Countries Bdg",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_bdg",
+            "description": "Country-boundary variant identified by the source suffix 'bdg'."
+        },
+        {
+            "id": "admin_0_countries_bra",
+            "name": "Countries Bra",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_bra",
+            "description": "Country-boundary variant identified by the source suffix 'bra'."
+        },
+        {
+            "id": "admin_0_countries_chn",
+            "name": "Countries Chn",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_chn",
+            "description": "Country-boundary variant identified by the source suffix 'chn'."
+        },
+        {
+            "id": "admin_0_countries_deu",
+            "name": "Countries Deu",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_deu",
+            "description": "Country-boundary variant identified by the source suffix 'deu'."
+        },
+        {
+            "id": "admin_0_countries_egy",
+            "name": "Countries Egy",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_egy",
+            "description": "Country-boundary variant identified by the source suffix 'egy'."
+        },
+        {
+            "id": "admin_0_countries_esp",
+            "name": "Countries Esp",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_esp",
+            "description": "Country-boundary variant identified by the source suffix 'esp'."
+        },
+        {
+            "id": "admin_0_countries_fra",
+            "name": "Countries Fra",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_fra",
+            "description": "Country-boundary variant identified by the source suffix 'fra'."
+        },
+        {
+            "id": "admin_0_countries_gbr",
+            "name": "Countries Gbr",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_gbr",
+            "description": "Country-boundary variant identified by the source suffix 'gbr'."
+        },
+        {
+            "id": "admin_0_countries_grc",
+            "name": "Countries Grc",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_grc",
+            "description": "Country-boundary variant identified by the source suffix 'grc'."
+        },
+        {
+            "id": "admin_0_countries_idn",
+            "name": "Countries Idn",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_idn",
+            "description": "Country-boundary variant identified by the source suffix 'idn'."
+        },
+        {
+            "id": "admin_0_countries_ind",
+            "name": "Countries Ind",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_ind",
+            "description": "Country-boundary variant identified by the source suffix 'ind'."
+        },
+        {
+            "id": "admin_0_countries_iso",
+            "name": "Countries Iso",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_iso",
+            "description": "Country-boundary variant identified by the source suffix 'iso'."
+        },
+        {
+            "id": "admin_0_countries_isr",
+            "name": "Countries Isr",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_isr",
+            "description": "Country-boundary variant identified by the source suffix 'isr'."
+        },
+        {
+            "id": "admin_0_countries_ita",
+            "name": "Countries Ita",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_ita",
+            "description": "Country-boundary variant identified by the source suffix 'ita'."
+        },
+        {
+            "id": "admin_0_countries_jpn",
+            "name": "Countries Jpn",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_jpn",
+            "description": "Country-boundary variant identified by the source suffix 'jpn'."
+        },
+        {
+            "id": "admin_0_countries_kor",
+            "name": "Countries Kor",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_kor",
+            "description": "Country-boundary variant identified by the source suffix 'kor'."
+        },
+        {
+            "id": "admin_0_countries_lakes",
+            "name": "Countries Lakes",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_0_countries_lakes",
+            "description": "Country polygons with lake areas represented as separate features."
+        },
+        {
+            "id": "admin_0_countries_mar",
+            "name": "Countries Mar",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_mar",
+            "description": "Country-boundary variant identified by the source suffix 'mar'."
+        },
+        {
+            "id": "admin_0_countries_nep",
+            "name": "Countries Nep",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_nep",
+            "description": "Country-boundary variant identified by the source suffix 'nep'."
+        },
+        {
+            "id": "admin_0_countries_nld",
+            "name": "Countries Nld",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_nld",
+            "description": "Country-boundary variant identified by the source suffix 'nld'."
+        },
+        {
+            "id": "admin_0_countries_pak",
+            "name": "Countries Pak",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_pak",
+            "description": "Country-boundary variant identified by the source suffix 'pak'."
+        },
+        {
+            "id": "admin_0_countries_pol",
+            "name": "Countries Pol",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_pol",
+            "description": "Country-boundary variant identified by the source suffix 'pol'."
+        },
+        {
+            "id": "admin_0_countries_prt",
+            "name": "Countries Prt",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_prt",
+            "description": "Country-boundary variant identified by the source suffix 'prt'."
+        },
+        {
+            "id": "admin_0_countries_pse",
+            "name": "Countries Pse",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_pse",
+            "description": "Country-boundary variant identified by the source suffix 'pse'."
+        },
+        {
+            "id": "admin_0_countries_rus",
+            "name": "Countries Rus",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_rus",
+            "description": "Country-boundary variant identified by the source suffix 'rus'."
+        },
+        {
+            "id": "admin_0_countries_sau",
+            "name": "Countries Sau",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_sau",
+            "description": "Country-boundary variant identified by the source suffix 'sau'."
+        },
+        {
+            "id": "admin_0_countries_swe",
+            "name": "Countries Swe",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_swe",
+            "description": "Country-boundary variant identified by the source suffix 'swe'."
+        },
+        {
+            "id": "admin_0_countries_tlc",
+            "name": "Countries Tlc",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_tlc",
+            "description": "Country-boundary variant identified by the source suffix 'tlc'."
+        },
+        {
+            "id": "admin_0_countries_tur",
+            "name": "Countries Tur",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_tur",
+            "description": "Country-boundary variant identified by the source suffix 'tur'."
+        },
+        {
+            "id": "admin_0_countries_twn",
+            "name": "Countries Twn",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_twn",
+            "description": "Country-boundary variant identified by the source suffix 'twn'."
+        },
+        {
+            "id": "admin_0_countries_ukr",
+            "name": "Countries Ukr",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_ukr",
+            "description": "Country-boundary variant identified by the source suffix 'ukr'."
+        },
+        {
+            "id": "admin_0_countries_usa",
+            "name": "Countries Usa",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_usa",
+            "description": "Country-boundary variant identified by the source suffix 'usa'."
+        },
+        {
+            "id": "admin_0_countries_vnm",
+            "name": "Countries Vnm",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_countries_vnm",
+            "description": "Country-boundary variant identified by the source suffix 'vnm'."
+        },
+        {
+            "id": "admin_0_disputed_areas",
+            "name": "Disputed Areas",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_disputed_areas",
+            "description": "Polygons covering areas with disputed political status."
+        },
+        {
+            "id": "admin_0_disputed_areas_scale_rank_minor_islands",
+            "name": "Disputed Areas Scale Rank Minor Islands",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_disputed_areas_scale_rank_minor_islands",
+            "description": "Small-island features in disputed areas, with scale-rank attributes."
+        },
+        {
+            "id": "admin_0_label_points",
+            "name": "Label Points",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_label_points",
+            "description": "Point locations used for label placement at the country level."
+        },
+        {
+            "id": "admin_0_map_subunits",
+            "name": "Map Subunits",
+            "precision": [
+                "high",
+                "medium"
+            ],
+            "link_part": "admin_0_map_subunits",
+            "description": "Subnational map units, including dependencies and separated territories."
+        },
+        {
+            "id": "admin_0_map_units",
+            "name": "Map Units",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_0_map_units",
+            "description": "Map units representing countries and associated territories."
+        },
+        {
+            "id": "admin_0_pacific_groupings",
+            "name": "Pacific Groupings",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_0_pacific_groupings",
+            "description": "Pacific island groups organized for cartographic display."
+        },
+        {
+            "id": "admin_0_scale_rank",
+            "name": "Scale Rank",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_0_scale_rank",
+            "description": "Country features with scale-rank attributes for map generalization."
+        },
+        {
+            "id": "admin_0_scale_rank_minor_islands",
+            "name": "Scale Rank Minor Islands",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_scale_rank_minor_islands",
+            "description": "Cultural map layer for scale rank minor islands, at the country level."
+        },
+        {
+            "id": "admin_0_seams",
+            "name": "Seams",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_0_seams",
+            "description": "Seam features used in the source's country map layer."
+        },
+        {
+            "id": "admin_0_sovereignty",
+            "name": "Sovereignty",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_0_sovereignty",
+            "description": "Areas represented according to sovereign-state boundaries."
+        },
+        {
+            "id": "admin_0_tiny_countries",
+            "name": "Tiny Countries",
+            "precision": [
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_0_tiny_countries",
+            "description": "Small countries highlighted for visibility at small map scales."
+        },
+        {
+            "id": "admin_0_tiny_countries_scale_rank",
+            "name": "Tiny Countries Scale Rank",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "admin_0_tiny_countries_scale_rank",
+            "description": "Small-country features with scale-rank values for map generalization."
+        },
+        {
+            "id": "admin_1_label_points",
+            "name": "Label Points",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_1_label_points",
+            "description": "Point locations used for label placement at the state/province level."
+        },
+        {
+            "id": "admin_1_label_points_details",
+            "name": "Label Points Details",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_1_label_points_details",
+            "description": "Detailed point locations supporting label placement at the state/province level."
+        },
+        {
+            "id": "admin_1_seams",
+            "name": "Seams",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_1_seams",
+            "description": "Seam features used in the source's state/province map layer."
+        },
+        {
+            "id": "admin_1_states_provinces",
+            "name": "States Provinces",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_1_states_provinces",
+            "description": "Administrative regions below the country level, such as states and provinces."
+        },
+        {
+            "id": "admin_1_states_provinces_lakes",
+            "name": "States Provinces Lakes",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_1_states_provinces_lakes",
+            "description": "State and province polygons with lake areas represented separately."
+        },
+        {
+            "id": "admin_1_states_provinces_lines",
+            "name": "States Provinces Lines",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_1_states_provinces_lines",
+            "description": "Boundary lines for states and provinces."
+        },
+        {
+            "id": "admin_1_states_provinces_scale_rank",
+            "name": "States Provinces Scale Rank",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_1_states_provinces_scale_rank",
+            "description": "State/province features with scale-rank attributes for map generalization."
+        },
+        {
+            "id": "admin_2_counties",
+            "name": "Counties",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_2_counties",
+            "description": "County-level administrative areas."
+        },
+        {
+            "id": "admin_2_counties_lakes",
+            "name": "Counties Lakes",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_2_counties_lakes",
+            "description": "County polygons with lake areas represented separately."
+        },
+        {
+            "id": "admin_2_counties_scale_rank",
+            "name": "Counties Scale Rank",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_2_counties_scale_rank",
+            "description": "County features with scale-rank attributes for map generalization."
+        },
+        {
+            "id": "admin_2_counties_scale_rank_minor_islands",
+            "name": "Counties Scale Rank Minor Islands",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_2_counties_scale_rank_minor_islands",
+            "description": "County-level administrative areas."
+        },
+        {
+            "id": "admin_2_label_points",
+            "name": "Label Points",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_2_label_points",
+            "description": "Point locations used for label placement at the county level."
+        },
+        {
+            "id": "admin_2_label_points_details",
+            "name": "Label Points Details",
+            "precision": [
+                "high"
+            ],
+            "link_part": "admin_2_label_points_details",
+            "description": "Detailed point locations supporting label placement at the county level."
+        },
+        {
+            "id": "airports",
+            "name": "Airports",
+            "precision": [
+                "high"
+            ],
+            "link_part": "airports",
+            "description": "Locations of airports."
+        },
+        {
+            "id": "countries",
+            "name": "Countries",
+            "description": "Matched boundary lines and polygons with names attributes for countries and sovereign states. Includes dependencies (French Polynesia), map units (U.S. Pacific Island Territories) and sub-national map subunits (Corsica versus mainland Metropolitan France).",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "admin_0_countries"
+        },
+        {
+            "id": "cultural_building_blocks_all",
+            "name": "Cultural Building Blocks All",
+            "precision": [
+                "high"
+            ],
+            "link_part": "cultural_building_blocks_all",
+            "description": "Complete set of base features for cultural map layers."
+        },
+        {
+            "id": "parks_and_protected_lands",
+            "name": "Parks And Protected Lands",
+            "precision": [
+                "high"
+            ],
+            "link_part": "parks_and_protected_lands",
+            "description": "Parks and protected lands represented as map features."
+        },
+        {
+            "id": "populated_places",
+            "name": "Populated Places",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "populated_places",
+            "description": "Populated places, including cities and towns."
+        },
+        {
+            "id": "populated_places_simple",
+            "name": "Populated Places Simple",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "populated_places_simple",
+            "description": "Simplified point dataset of populated places."
+        },
+        {
+            "id": "ports",
+            "name": "Ports",
+            "precision": [
+                "high"
+            ],
+            "link_part": "ports",
+            "description": "Locations of ports."
+        },
+        {
+            "id": "railroads",
+            "name": "Railroads",
+            "precision": [
+                "high"
+            ],
+            "link_part": "railroads",
+            "description": "Railway routes and connections."
+        },
+        {
+            "id": "railroads_north_america",
+            "name": "Railroads North America",
+            "precision": [
+                "high"
+            ],
+            "link_part": "railroads_north_america",
+            "description": "Railway routes and connections in North America."
+        },
+        {
+            "id": "roads",
+            "name": "Roads",
+            "precision": [
+                "high"
+            ],
+            "link_part": "roads",
+            "description": "Road networks represented as line features."
+        },
+        {
+            "id": "roads_north_america",
+            "name": "Roads North America",
+            "precision": [
+                "high"
+            ],
+            "link_part": "roads_north_america",
+            "description": "Road networks in North America represented as line features."
+        },
+        {
+            "id": "time_zones",
+            "name": "Time Zones",
+            "precision": [
+                "high"
+            ],
+            "link_part": "time_zones",
+            "description": "Geographic boundaries of time zones."
+        },
+        {
+            "id": "urban_areas",
+            "name": "Urban Areas",
+            "precision": [
+                "high",
+                "medium"
+            ],
+            "link_part": "urban_areas",
+            "description": "Urban areas represented as geographic features."
+        },
+        {
+            "id": "urban_areas_landscan",
+            "name": "Urban Areas Landscan",
+            "precision": [
+                "high"
+            ],
+            "link_part": "urban_areas_landscan",
+            "description": "Urban areas in the LandScan source dataset."
+        }
+    ],
+    "physical": [
+        {
+            "id": "antarctic_ice_shelves_lines",
+            "name": "Antarctic Ice Shelves Lines",
+            "precision": [
+                "high",
+                "medium"
+            ],
+            "link_part": "antarctic_ice_shelves_lines",
+            "description": "Line features outlining Antarctic ice shelves."
+        },
+        {
+            "id": "antarctic_ice_shelves_polys",
+            "name": "Antarctic Ice Shelves Polys",
+            "precision": [
+                "high",
+                "medium"
+            ],
+            "link_part": "antarctic_ice_shelves_polys",
+            "description": "Polygon features representing Antarctic ice shelves."
+        },
+        {
+            "id": "bathymetry_A_10000",
+            "name": "Bathymetry A 10000",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_A_10000",
+            "description": "Bathymetry layer in source depth class A, labeled 10000."
+        },
+        {
+            "id": "bathymetry_all",
+            "name": "Bathymetry All",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_all",
+            "description": "Combined bathymetry dataset."
+        },
+        {
+            "id": "bathymetry_B_9000",
+            "name": "Bathymetry B 9000",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_B_9000",
+            "description": "Bathymetry layer in source depth class B, labeled 9000."
+        },
+        {
+            "id": "bathymetry_C_8000",
+            "name": "Bathymetry C 8000",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_C_8000",
+            "description": "Bathymetry layer in source depth class C, labeled 8000."
+        },
+        {
+            "id": "bathymetry_D_7000",
+            "name": "Bathymetry D 7000",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_D_7000",
+            "description": "Bathymetry layer in source depth class D, labeled 7000."
+        },
+        {
+            "id": "bathymetry_E_6000",
+            "name": "Bathymetry E 6000",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_E_6000",
+            "description": "Bathymetry layer in source depth class E, labeled 6000."
+        },
+        {
+            "id": "bathymetry_F_5000",
+            "name": "Bathymetry F 5000",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_F_5000",
+            "description": "Bathymetry layer in source depth class F, labeled 5000."
+        },
+        {
+            "id": "bathymetry_G_4000",
+            "name": "Bathymetry G 4000",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_G_4000",
+            "description": "Bathymetry layer in source depth class G, labeled 4000."
+        },
+        {
+            "id": "bathymetry_H_3000",
+            "name": "Bathymetry H 3000",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_H_3000",
+            "description": "Bathymetry layer in source depth class H, labeled 3000."
+        },
+        {
+            "id": "bathymetry_I_2000",
+            "name": "Bathymetry I 2000",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_I_2000",
+            "description": "Bathymetry layer in source depth class I, labeled 2000."
+        },
+        {
+            "id": "bathymetry_J_1000",
+            "name": "Bathymetry J 1000",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_J_1000",
+            "description": "Bathymetry layer in source depth class J, labeled 1000."
+        },
+        {
+            "id": "bathymetry_K_200",
+            "name": "Bathymetry K 200",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_K_200",
+            "description": "Bathymetry layer in source depth class K, labeled 200."
+        },
+        {
+            "id": "bathymetry_L_0",
+            "name": "Bathymetry L 0",
+            "precision": [
+                "high"
+            ],
+            "link_part": "bathymetry_L_0",
+            "description": "Bathymetry layer in source depth class L, labeled 0."
+        },
+        {
+            "id": "coastline",
+            "name": "Coastline",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "coastline",
+            "description": "Coastline represented as line features."
+        },
+        {
+            "id": "geographic_lines",
+            "name": "Geographic Lines",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "geographic_lines",
+            "description": "Geographic reference lines for mapping."
+        },
+        {
+            "id": "geography_marine_polys",
+            "name": "Geography Marine Polys",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "geography_marine_polys",
+            "description": "Marine areas such as oceans, seas, bays, gulfs, reefs, and straits."
+        },
+        {
+            "id": "geography_regions_elevation_points",
+            "name": "Geography Regions Elevation Points",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "geography_regions_elevation_points",
+            "description": "Named geographic regions represented as elevation points."
+        },
+        {
+            "id": "geography_regions_points",
+            "name": "Geography Regions Points",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "geography_regions_points",
+            "description": "Named geographic regions represented as points."
+        },
+        {
+            "id": "geography_regions_polys",
+            "name": "Geography Regions Polys",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "geography_regions_polys",
+            "description": "Named geographic regions represented as polygons."
+        },
+        {
+            "id": "glaciated_areas",
+            "name": "Glaciated Areas",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "glaciated_areas",
+            "description": "Areas covered by glaciers or permanent ice."
+        },
+        {
+            "id": "graticules_1",
+            "name": "Graticules 1",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "graticules_1",
+            "description": "Global latitude-longitude graticule at 1-degree intervals."
+        },
+        {
+            "id": "graticules_10",
+            "name": "Graticules 10",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "graticules_10",
+            "description": "Global latitude-longitude graticule at 10-degree intervals."
+        },
+        {
+            "id": "graticules_15",
+            "name": "Graticules 15",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "graticules_15",
+            "description": "Global latitude-longitude graticule at 15-degree intervals."
+        },
+        {
+            "id": "graticules_20",
+            "name": "Graticules 20",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "graticules_20",
+            "description": "Global latitude-longitude graticule at 20-degree intervals."
+        },
+        {
+            "id": "graticules_30",
+            "name": "Graticules 30",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "graticules_30",
+            "description": "Global latitude-longitude graticule at 30-degree intervals."
+        },
+        {
+            "id": "graticules_5",
+            "name": "Graticules 5",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "graticules_5",
+            "description": "Global latitude-longitude graticule at 5-degree intervals."
+        },
+        {
+            "id": "graticules_all",
+            "name": "Graticules All",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "graticules_all",
+            "description": "Global latitude-longitude graticule at multiple intervals."
+        },
+        {
+            "id": "lakes",
+            "name": "Lakes",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "lakes",
+            "description": "Lakes represented as polygon features."
+        },
+        {
+            "id": "lakes_australia",
+            "name": "Lakes Australia",
+            "precision": [
+                "high"
+            ],
+            "link_part": "lakes_australia",
+            "description": "Lake features in Australia."
+        },
+        {
+            "id": "lakes_europe",
+            "name": "Lakes Europe",
+            "precision": [
+                "high"
+            ],
+            "link_part": "lakes_europe",
+            "description": "Lake features for europe."
+        },
+        {
+            "id": "lakes_historic",
+            "name": "Lakes Historic",
+            "precision": [
+                "high",
+                "medium"
+            ],
+            "link_part": "lakes_historic",
+            "description": "Historical lake features."
+        },
+        {
+            "id": "lakes_north_america",
+            "name": "Lakes North America",
+            "precision": [
+                "high"
+            ],
+            "link_part": "lakes_north_america",
+            "description": "Lake features for north america."
+        },
+        {
+            "id": "lakes_pluvial",
+            "name": "Lakes Pluvial",
+            "precision": [
+                "high"
+            ],
+            "link_part": "lakes_pluvial",
+            "description": "Lakes and water bodies associated with pluvial processes."
+        },
+        {
+            "id": "land",
+            "name": "Land",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "land",
+            "description": "Land areas represented as polygons."
+        },
+        {
+            "id": "land_ocean_label_points",
+            "name": "Land Ocean Label Points",
+            "precision": [
+                "high"
+            ],
+            "link_part": "land_ocean_label_points",
+            "description": "Point locations used to place land and ocean labels."
+        },
+        {
+            "id": "land_ocean_seams",
+            "name": "Land Ocean Seams",
+            "precision": [
+                "high"
+            ],
+            "link_part": "land_ocean_seams",
+            "description": "Seam features along land and ocean boundaries."
+        },
+        {
+            "id": "land_scale_rank",
+            "name": "Land Scale Rank",
+            "precision": [
+                "high"
+            ],
+            "link_part": "land_scale_rank",
+            "description": "Land polygons with scale-rank attributes for map generalization."
+        },
+        {
+            "id": "minor_islands",
+            "name": "Minor Islands",
+            "precision": [
+                "high"
+            ],
+            "link_part": "minor_islands",
+            "description": "Minor-island island polygons for small-scale mapping."
+        },
+        {
+            "id": "minor_islands_coastline",
+            "name": "Minor Islands Coastline",
+            "precision": [
+                "high"
+            ],
+            "link_part": "minor_islands_coastline",
+            "description": "Minor-island coastline lines for small-scale mapping."
+        },
+        {
+            "id": "minor_islands_label_points",
+            "name": "Minor Islands Label Points",
+            "precision": [
+                "high"
+            ],
+            "link_part": "minor_islands_label_points",
+            "description": "Minor-island label points for small-scale mapping."
+        },
+        {
+            "id": "ocean",
+            "name": "Ocean",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "ocean",
+            "description": "Ocean areas represented as polygons."
+        },
+        {
+            "id": "ocean_scale_rank",
+            "name": "Ocean Scale Rank",
+            "precision": [
+                "high"
+            ],
+            "link_part": "ocean_scale_rank",
+            "description": "Ocean polygons with scale-rank attributes for map generalization."
+        },
+        {
+            "id": "physical_building_blocks_all",
+            "name": "Physical Building Blocks All",
+            "precision": [
+                "high"
+            ],
+            "link_part": "physical_building_blocks_all",
+            "description": "Complete set of base features for physical map layers."
+        },
+        {
+            "id": "playas",
+            "name": "Playas",
+            "precision": [
+                "high",
+                "medium"
+            ],
+            "link_part": "playas",
+            "description": "Playas and dry lake beds represented as geographic features."
+        },
+        {
+            "id": "reefs",
+            "name": "Reefs",
+            "precision": [
+                "high"
+            ],
+            "link_part": "reefs",
+            "description": "Reef features represented as polygons."
+        },
+        {
+            "id": "rivers_australia",
+            "name": "Rivers Australia",
+            "precision": [
+                "high"
+            ],
+            "link_part": "rivers_australia",
+            "description": "River features for australia."
+        },
+        {
+            "id": "rivers_europe",
+            "name": "Rivers Europe",
+            "precision": [
+                "high"
+            ],
+            "link_part": "rivers_europe",
+            "description": "River features for europe."
+        },
+        {
+            "id": "rivers_lake_centerlines",
+            "name": "Rivers Lake Centerlines",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "rivers_lake_centerlines",
+            "description": "Centerlines for rivers and lakes."
+        },
+        {
+            "id": "rivers_lake_centerlines_scale_rank",
+            "name": "Rivers Lake Centerlines Scale Rank",
+            "precision": [
+                "high",
+                "medium"
+            ],
+            "link_part": "rivers_lake_centerlines_scale_rank",
+            "description": "River and lake centerlines with scale-rank attributes."
+        },
+        {
+            "id": "rivers_north_america",
+            "name": "Rivers North America",
+            "precision": [
+                "high"
+            ],
+            "link_part": "rivers_north_america",
+            "description": "River features for north america."
+        },
+        {
+            "id": "wgs84_bounding_box",
+            "name": "Wgs84 Bounding Box",
+            "precision": [
+                "high",
+                "medium",
+                "low"
+            ],
+            "link_part": "wgs84_bounding_box",
+            "description": "Bounding box in the WGS 84 coordinate reference system."
+        }
+    ],
+    "raster": [
+        {
+            "id": "bath_50m",
+            "name": "BATH 50M",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "BATH_50M",
+            "description": "Bathymetric raster. Source variant: BATH_50M."
+        },
+        {
+            "id": "gray_50m_sr",
+            "name": "GRAY 50M SR",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "GRAY_50M_SR",
+            "description": "Grayscale raster map layer. Source variant: GRAY_50M_SR."
+        },
+        {
+            "id": "gray_50m_sr_ob",
+            "name": "GRAY 50M SR OB",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "GRAY_50M_SR_OB",
+            "description": "Grayscale raster map layer. Source variant: GRAY_50M_SR_OB."
+        },
+        {
+            "id": "gray_50m_sr_w",
+            "name": "GRAY 50M SR W",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "GRAY_50M_SR_W",
+            "description": "Grayscale raster map layer. Source variant: GRAY_50M_SR_W."
+        },
+        {
+            "id": "gray_hr_sr",
+            "name": "GRAY HR SR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "GRAY_HR_SR",
+            "description": "Grayscale raster map layer. Source variant: GRAY_HR_SR."
+        },
+        {
+            "id": "gray_hr_sr_ob",
+            "name": "GRAY HR SR OB",
+            "precision": [
+                "high"
+            ],
+            "link_part": "GRAY_HR_SR_OB",
+            "description": "Grayscale raster map layer. Source variant: GRAY_HR_SR_OB."
+        },
+        {
+            "id": "gray_hr_sr_ob_dr",
+            "name": "GRAY HR SR OB DR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "GRAY_HR_SR_OB_DR",
+            "description": "Grayscale raster map layer. Source variant: GRAY_HR_SR_OB_DR."
+        },
+        {
+            "id": "gray_hr_sr_w",
+            "name": "GRAY HR SR W",
+            "precision": [
+                "high"
+            ],
+            "link_part": "GRAY_HR_SR_W",
+            "description": "Grayscale raster map layer. Source variant: GRAY_HR_SR_W."
+        },
+        {
+            "id": "gray_lr_sr",
+            "name": "GRAY LR SR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "GRAY_LR_SR",
+            "description": "Grayscale raster map layer. Source variant: GRAY_LR_SR."
+        },
+        {
+            "id": "gray_lr_sr_ob",
+            "name": "GRAY LR SR OB",
+            "precision": [
+                "high"
+            ],
+            "link_part": "GRAY_LR_SR_OB",
+            "description": "Grayscale raster map layer. Source variant: GRAY_LR_SR_OB."
+        },
+        {
+            "id": "gray_lr_sr_ob_dr",
+            "name": "GRAY LR SR OB DR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "GRAY_LR_SR_OB_DR",
+            "description": "Grayscale raster map layer. Source variant: GRAY_LR_SR_OB_DR."
+        },
+        {
+            "id": "gray_lr_sr_w",
+            "name": "GRAY LR SR W",
+            "precision": [
+                "high"
+            ],
+            "link_part": "GRAY_LR_SR_W",
+            "description": "Grayscale raster map layer. Source variant: GRAY_LR_SR_W."
+        },
+        {
+            "id": "hyp_50m_sr",
+            "name": "HYP 50M SR",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "HYP_50M_SR",
+            "description": "Hypsometric raster map layer. Source variant: HYP_50M_SR."
+        },
+        {
+            "id": "hyp_50m_sr_w",
+            "name": "HYP 50M SR W",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "HYP_50M_SR_W",
+            "description": "Hypsometric raster map layer. Source variant: HYP_50M_SR_W."
+        },
+        {
+            "id": "hyp_hr",
+            "name": "HYP HR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "HYP_HR",
+            "description": "Hypsometric raster map layer. Source variant: HYP_HR."
+        },
+        {
+            "id": "hyp_hr_sr",
+            "name": "HYP HR SR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "HYP_HR_SR",
+            "description": "Hypsometric raster map layer. Source variant: HYP_HR_SR."
+        },
+        {
+            "id": "hyp_hr_sr_ob_dr",
+            "name": "HYP HR SR OB DR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "HYP_HR_SR_OB_DR",
+            "description": "Hypsometric raster map layer. Source variant: HYP_HR_SR_OB_DR."
+        },
+        {
+            "id": "hyp_hr_sr_w",
+            "name": "HYP HR SR W",
+            "precision": [
+                "high"
+            ],
+            "link_part": "HYP_HR_SR_W",
+            "description": "Hypsometric raster map layer. Source variant: HYP_HR_SR_W."
+        },
+        {
+            "id": "hyp_hr_sr_w_dr",
+            "name": "HYP HR SR W DR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "HYP_HR_SR_W_DR",
+            "description": "Hypsometric raster map layer. Source variant: HYP_HR_SR_W_DR."
+        },
+        {
+            "id": "hyp_lr",
+            "name": "HYP LR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "HYP_LR",
+            "description": "Hypsometric raster map layer. Source variant: HYP_LR."
+        },
+        {
+            "id": "hyp_lr_sr",
+            "name": "HYP LR SR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "HYP_LR_SR",
+            "description": "Hypsometric raster map layer. Source variant: HYP_LR_SR."
+        },
+        {
+            "id": "hyp_lr_sr_ob_dr",
+            "name": "HYP LR SR OB DR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "HYP_LR_SR_OB_DR",
+            "description": "Hypsometric raster map layer. Source variant: HYP_LR_SR_OB_DR."
+        },
+        {
+            "id": "hyp_lr_sr_w",
+            "name": "HYP LR SR W",
+            "precision": [
+                "high"
+            ],
+            "link_part": "HYP_LR_SR_W",
+            "description": "Hypsometric raster map layer. Source variant: HYP_LR_SR_W."
+        },
+        {
+            "id": "hyp_lr_sr_w_dr",
+            "name": "HYP LR SR W DR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "HYP_LR_SR_W_DR",
+            "description": "Hypsometric raster map layer. Source variant: HYP_LR_SR_W_DR."
+        },
+        {
+            "id": "msr_50m",
+            "name": "MSR 50M",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "MSR_50M",
+            "description": "Raster map layer in the MSR source series. Source variant: MSR_50M."
+        },
+        {
+            "id": "ne1_50m_lc_sr",
+            "name": "NE1 50M LC SR",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "NE1_50M_LC_SR",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_50M_LC_SR."
+        },
+        {
+            "id": "ne1_50m_lc_sr_w",
+            "name": "NE1 50M LC SR W",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "NE1_50M_LC_SR_W",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_50M_LC_SR_W."
+        },
+        {
+            "id": "ne1_50m_sr",
+            "name": "NE1 50M SR",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "NE1_50M_SR",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_50M_SR."
+        },
+        {
+            "id": "ne1_50m_sr_w",
+            "name": "NE1 50M SR W",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "NE1_50M_SR_W",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_50M_SR_W."
+        },
+        {
+            "id": "ne1_hr_lc",
+            "name": "NE1 HR LC",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE1_HR_LC",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_HR_LC."
+        },
+        {
+            "id": "ne1_hr_lc_sr",
+            "name": "NE1 HR LC SR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE1_HR_LC_SR",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_HR_LC_SR."
+        },
+        {
+            "id": "ne1_hr_lc_sr_w",
+            "name": "NE1 HR LC SR W",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE1_HR_LC_SR_W",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_HR_LC_SR_W."
+        },
+        {
+            "id": "ne1_hr_lc_sr_w_dr",
+            "name": "NE1 HR LC SR W DR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE1_HR_LC_SR_W_DR",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_HR_LC_SR_W_DR."
+        },
+        {
+            "id": "ne1_lr_lc",
+            "name": "NE1 LR LC",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE1_LR_LC",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_LR_LC."
+        },
+        {
+            "id": "ne1_lr_lc_sr",
+            "name": "NE1 LR LC SR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE1_LR_LC_SR",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_LR_LC_SR."
+        },
+        {
+            "id": "ne1_lr_lc_sr_w",
+            "name": "NE1 LR LC SR W",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE1_LR_LC_SR_W",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_LR_LC_SR_W."
+        },
+        {
+            "id": "ne1_lr_lc_sr_w_dr",
+            "name": "NE1 LR LC SR W DR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE1_LR_LC_SR_W_DR",
+            "description": "Raster map layer in the NE1 series. Source variant: NE1_LR_LC_SR_W_DR."
+        },
+        {
+            "id": "ne2_50m_lc_sr",
+            "name": "NE2 50M LC SR",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "NE2_50M_LC_SR",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_50M_LC_SR."
+        },
+        {
+            "id": "ne2_50m_lc_sr_w",
+            "name": "NE2 50M LC SR W",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "NE2_50M_LC_SR_W",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_50M_LC_SR_W."
+        },
+        {
+            "id": "ne2_50m_sr",
+            "name": "NE2 50M SR",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "NE2_50M_SR",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_50M_SR."
+        },
+        {
+            "id": "ne2_50m_sr_w",
+            "name": "NE2 50M SR W",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "NE2_50M_SR_W",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_50M_SR_W."
+        },
+        {
+            "id": "ne2_hr_lc",
+            "name": "NE2 HR LC",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE2_HR_LC",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_HR_LC."
+        },
+        {
+            "id": "ne2_hr_lc_sr",
+            "name": "NE2 HR LC SR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE2_HR_LC_SR",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_HR_LC_SR."
+        },
+        {
+            "id": "ne2_hr_lc_sr_w",
+            "name": "NE2 HR LC SR W",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE2_HR_LC_SR_W",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_HR_LC_SR_W."
+        },
+        {
+            "id": "ne2_hr_lc_sr_w_dr",
+            "name": "NE2 HR LC SR W DR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE2_HR_LC_SR_W_DR",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_HR_LC_SR_W_DR."
+        },
+        {
+            "id": "ne2_lr_lc",
+            "name": "NE2 LR LC",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE2_LR_LC",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_LR_LC."
+        },
+        {
+            "id": "ne2_lr_lc_sr",
+            "name": "NE2 LR LC SR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE2_LR_LC_SR",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_LR_LC_SR."
+        },
+        {
+            "id": "ne2_lr_lc_sr_w",
+            "name": "NE2 LR LC SR W",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE2_LR_LC_SR_W",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_LR_LC_SR_W."
+        },
+        {
+            "id": "ne2_lr_lc_sr_w_dr",
+            "name": "NE2 LR LC SR W DR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "NE2_LR_LC_SR_W_DR",
+            "description": "Raster map layer in the NE2 series. Source variant: NE2_LR_LC_SR_W_DR."
+        },
+        {
+            "id": "ob_50m",
+            "name": "OB 50M",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "OB_50M",
+            "description": "Raster map layer in the OB source series. Source variant: OB_50M."
+        },
+        {
+            "id": "ob_lr",
+            "name": "OB LR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "OB_LR",
+            "description": "Raster map layer in the OB source series. Source variant: OB_LR."
+        },
+        {
+            "id": "prisma_sr_50m",
+            "name": "PRISMA SR 50M",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "PRISMA_SR_50M",
+            "description": "Raster map layer in the PRISMA source series. Source variant: PRISMA_SR_50M."
+        },
+        {
+            "id": "sr_50m",
+            "name": "SR 50M",
+            "precision": [
+                "medium"
+            ],
+            "link_part": "SR_50M",
+            "description": "Shaded-relief raster map layer. Source variant: SR_50M."
+        },
+        {
+            "id": "sr_hr",
+            "name": "SR HR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "SR_HR",
+            "description": "Shaded-relief raster map layer. Source variant: SR_HR."
+        },
+        {
+            "id": "sr_lr",
+            "name": "SR LR",
+            "precision": [
+                "high"
+            ],
+            "link_part": "SR_LR",
+            "description": "Shaded-relief raster map layer. Source variant: SR_LR."
+        }
+    ]
+}

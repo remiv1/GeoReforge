@@ -2,6 +2,7 @@
 
 from .config import DatabaseSettings
 from .config.c_databases import DatabaseConfig
+from .common.datas import DataImporter
 
 
 def create_database() -> None:
@@ -15,7 +16,10 @@ def create_database() -> None:
 
 def import_datas() -> None:
     """Importe les données initiales dans la base de données."""
-    pass
+    data_importer = DataImporter()
+    files_list = data_importer.download_files().list_downloaded_files()
+    for file in files_list:
+        pass
 
 def main() -> None:
     """Initialise la base de données avant le démarrage de l'API."""

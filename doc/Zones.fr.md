@@ -1,65 +1,115 @@
-# Guide de création du fichier zones.toml
+# Guide de création de `zones.toml`
 
-Le fichier `zones.toml` permet de définir les zones géographiques à récupérer depuis Natural Earth.
+Le fichier `zones.toml` définit les jeux Natural Earth et les précisions utilisés par GeoReforge. Vous pouvez le préparer avec la TUI Textual ou le notebook Jupyter ; les deux interfaces utilisent le même catalogue et les mêmes règles de validation.
 
-Par défaut, le conteneur embarque un fichier comprenant les définitions hautes, basses et faibles des pays, océans et mers. Vous pouvez personnaliser ce fichier en créant votre propre fichier en suivant le guide qui suit.
+## Sommaire
 
-## Structure du fichier zones.toml
+- [Guide de création de `zones.toml`](#guide-de-création-de-zonestoml)
+  - [Sommaire](#sommaire)
+  - [Fichier et interfaces](#fichier-et-interfaces)
+  - [Identifiants Natural Earth](#identifiants-natural-earth)
+  - [Utiliser la Textual UI (en console plein écran)](#utiliser-la-textual-ui-en-console-plein-écran)
+  - [Utiliser le notebook Jupyter](#utiliser-le-notebook-jupyter)
+  - [Export et chemins de sortie](#export-et-chemins-de-sortie)
+
+## Fichier et interfaces
+
+La configuration regroupe les jeux en trois familles : `cultural`, `physical` et `raster`. Chaque entrée contient un nom d’affichage, les précisions disponibles et la fin du nom de téléchargement Natural Earth.
 
 ```toml
-# Config file to define zones to download from the source path
-
-# Adresse source des données Natural Earth
 source_path = "https://naturalearth.s3.amazonaws.com"
 
-# Définition de trois familles possibles : cultural, physical, raster
-[[data_family.cultural]]    # Ici, on définit la famille de données culturelles
-name = "Countries"  # Nom d'affichage de la zone dans l'interface utilisateur
-precision = ["low", "medium", "high"]   # Précisions disponibles pour cette zone
-link = "admin_0_countries"  # Parties du lien à récupérer sur le site internet
+[[data_family.cultural]]
+name = "Countries"
+precision = ["low", "medium", "high"]
+link = "admin_0_countries"
 
 [[data_family.physical]]
 name = "Oceans"
 precision = ["low", "medium", "high"]
 link = "ocean"
-
-[[data_family.physical]]
-name = "Marine Polygons"
-precision = ["low", "medium", "high"]
-link = "geography_marine_polys"
 ```
 
-## Récupérer `precision` et `link` d'une zone
+La configuration par défaut du dépôt se trouve dans `src/zones.toml`. L’assistant permet de préparer un fichier complet, avec les correspondances de colonnes et de classes nécessaires à l’API.
 
-Aller sur [Natural Earth](https://www.naturalearthdata.com/features/)
+## Identifiants Natural Earth
 
-![Site Natural Earth](ne1.png)
+Consultez la [page des données Natural Earth](https://www.naturalearthdata.com/features/) pour trouver un jeu et les précisions disponibles.
 
-Pour chaque zone, vous avez trois rectangles avec des chiffres représentant les différentes précisions disponibles :
+![Site Natural Earth](img/ne1.png)
 
-- 10 : haute précision
-- 50 : précision moyenne
-- 110 : basse précision
+Les numéros de résolution Natural Earth correspondent aux valeurs suivantes dans la configuration :
 
-Cliquez sur le carré correspondant à la définition de la zone souhaitée pour accéder aux liens de téléchargement correspondant.
+- `10m` : `high` (haute résolution)
+- `50m` : `medium` (résolution moyenne)
+- `110m` : `low` (basse résolution)
 
-![Récupération du lien](ne2.png)
+Ouvrez la page du jeu, puis copiez le lien de téléchargement de la résolution souhaitée.
 
-Cliquez sur _Copier l'adresse du lien_.
+![Recherche du lien de téléchargement Natural Earth](img/ne2.png)
 
-```txt
-https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/110m/cultural/ne_110m_admin_0_countries.zip
+Pour un nom de fichier comme `ne_110m_admin_0_countries.zip`, utilisez `admin_0_countries` comme valeur `link` et `low` comme valeur `precision`. N’indiquez que les précisions souhaitées. Répétez l’opération pour chaque jeu à configurer.
+
+## Utiliser la Textual UI (en console plein écran)
+
+Depuis la racine du dépôt, créez un environnement dédié et installez les dépendances de l’assistant :
+
+```sh
+python3.14 -m venv .venv-zones
+source .venv-zones/bin/activate
+python -m pip install -r scripts/zones_maker/requirements.txt
 ```
 
-Sur le nom du fichier, `ne` représente Natural Earth, `110m` représente la précision (ici basse précision), ne conservez que `admin_0_countries` pour le champ `link` dans votre fichier `zones.toml`.
+Lancez l’interface plein écran :
 
-Pour la précision, utilisez `low` pour 110m, `medium` pour 50m et `high` pour 10m  à l'intérieur d'une liste dans le champ `precision` de votre fichier `zones.toml`. Je ne suis pas obligé de récupérer toutes les précisions possibles.
-
-```toml
-[[data_family.cultural]]
-name = "Countries"
-precision = ["low", "medium", "high"]
-link = "admin_0_countries"
+```sh
+PYTHONPATH=scripts python -m zones_maker.main
 ```
 
-Faites ceci pour chacune des zones que vous souhaitez ajouter à votre fichier `zones.toml` avant le premier lancement de l'application.
+Les dépendances de l’assistant sont séparées de celles de l’API et ne sont pas ajoutées à l’image Docker.
+
+1. Dans l’onglet **Sélection**, filtrez ou recherchez le catalogue, choisissez un jeu, cochez une ou plusieurs précisions, puis ajoutez-le à la sélection.
+
+  ![Sélection d’un jeu dans la TUI](img/tui1.png)
+
+1. Dans **Exploration et mapping**, choisissez un jeu retenu et une précision, puis sélectionnez **Explorer le SHP**. L’assistant lit le fichier présent dans `tmp/` ; s’il manque, il télécharge uniquement le jeu et la précision choisis. Associez les colonnes du nom, du code, de la géométrie et de la classe. Pour chaque classe affichée, saisissez une valeur cible et appliquez-la, puis enregistrez le mapping. L’export reste bloqué tant que les correspondances requises ou les valeurs de classe sont invalides.
+
+  ![Correspondance des colonnes et des classes dans la TUI](img/tui2.png)
+
+1. Dans **Export**, vérifiez l’aperçu TOML et sélectionnez **Préparer l’export**. Si la destination existe, choisissez explicitement de la remplacer ou d’enregistrer une copie datée.
+
+  ![Aperçu et export depuis la TUI](img/tui3.png)
+
+Appuyez sur `q` ou `Ctrl+C` pour quitter la TUI.
+
+## Utiliser le notebook Jupyter
+
+Le notebook offre le même parcours de catalogue, de sélection, de mapping et d’export avec ipywidgets. Le fichier `scripts/zones_maker/requirements.txt` n’installe pas les dépendances du notebook : ajoutez le noyau Jupyter et ipywidgets à l’environnement dédié.
+
+```sh
+python3.14 -m venv .venv-zones
+source .venv-zones/bin/activate
+python -m pip install -r scripts/zones_maker/requirements.txt
+python -m pip install ipykernel ipywidgets
+```
+
+Ouvrez [`explore_file.ipynb`](explore_file.ipynb) dans VS Code ou Jupyter, choisissez le noyau Python `.venv-zones`, puis exécutez les cellules dans l’ordre. Le notebook charge le catalogue local et affiche les vues de sélection, de configuration, d’exploration/mapping et d’export.
+
+![Sélection Natural Earth et aperçu de configuration dans le notebook](img/notebook.png)
+
+Sélectionnez un jeu et ses précisions avant de l’explorer. L’exploration lit le SHP dans `tmp/` s’il est disponible ; sinon, elle télécharge le jeu et la précision sélectionnés. Enregistrez les correspondances de colonnes et de classes avant de préparer l’export. L’ouverture du notebook et l’affichage de ses vues ne téléchargent pas de jeu et n’écrivent pas de fichier TOML.
+
+## Export et chemins de sortie
+
+Les deux interfaces utilisent `src/zones.toml` par défaut. La préparation de l’export écrit directement à cette destination si elle n’existe pas. Si elle existe déjà, l’interface demande un choix explicite : la remplacer ou enregistrer une copie datée. Une copie datée suit le format `YY-MM-DD_zones.toml` dans le même répertoire que la destination configurée ; un fichier daté existant n’est jamais écrasé.
+
+La TUI accepte des chemins personnalisés avec `--catalog`, `--data` et `--zones` :
+
+```sh
+PYTHONPATH=scripts python -m zones_maker.main \
+  --catalog doc/naturalearth.json \
+  --data tmp \
+  --zones src/zones.toml
+```
+
+Les chemins du notebook sont définis dans sa cellule d’initialisation : catalogue `doc/naturalearth.json`, données `tmp` et fichier de sortie `src/zones.toml`. Modifiez-les dans cette cellule si vous utilisez une autre organisation.

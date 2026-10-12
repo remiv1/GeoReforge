@@ -1,6 +1,6 @@
 # GeoReforge
 
-<img src="./doc/logo.png" alt="GeoReforge" width="72" align="left"> <strong>Transform geographic references into business-ready zones.</strong><br clear="left">
+<img src="./doc/img/logo.png" alt="GeoReforge" width="72" align="left"> <strong>Transform geographic references into business-ready zones.</strong><br clear="left">
 
 [Français](README.fr.md) | English
 

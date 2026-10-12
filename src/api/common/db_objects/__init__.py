@@ -2,8 +2,8 @@
 
 from sqlalchemy.orm import DeclarativeBase
 
-from api.config import DatabaseSettings
-from api.config.c_databases import DbType
+from ...config import DatabaseSettings
+from ...config.c_databases import DbType
 
 settings = DatabaseSettings()
 
