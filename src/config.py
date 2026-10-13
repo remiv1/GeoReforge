@@ -1,8 +1,9 @@
 """Configuration file for the Gunicorn server."""
 bind = "0.0.0.0:8000"   # pylint: disable=C0103
-workers = 4   # pylint: disable=C0103
-worker_class = "sync"   # pylint: disable=C0103
-timeout = 30   # pylint: disable=C0103
+worker_class = "gthread"   # pylint: disable=C0103
+workers = 2   # pylint: disable=C0103
+threads = 4   # pylint: disable=C0103
+timeout = 60   # pylint: disable=C0103
 keepalive = 5   # pylint: disable=C0103
 loglevel = "info"   # pylint: disable=C0103
 accesslog = "-"   # pylint: disable=C0103

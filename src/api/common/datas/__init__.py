@@ -6,8 +6,10 @@
 
 from .importer import DataImporter
 from .injecter import DataInjecter
+from .mapper import ZonesMapper
 
 __all__ = [
     "DataImporter",
     "DataInjecter",
+    "ZonesMapper",
 ]

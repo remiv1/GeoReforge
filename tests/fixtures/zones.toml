@@ -1,0 +1,32 @@
+source_path = "https://naturalearth.s3.amazonaws.com"
+
+[data_family]
+raster = []
+
+[[data_family.cultural]]
+name = "Countries"
+precision = ["high"]
+link = "admin_0_countries"
+
+[[data_family.physical]]
+name = "Lakes"
+precision = ["high"]
+link = "lakes"
+
+[data_family.mapping.admin_0_countries]
+name = "NAME_LONG"
+code = "ISO_A3"
+geometry = "geometry"
+class = "featurecla"
+
+[data_family.mapping.admin_0_countries.classes]
+"Admin-0 country" = "Pays"
+
+[data_family.mapping.lakes]
+name = "name_en"
+code = "ne_id"
+geometry = "geometry"
+class = "featurecla"
+
+[data_family.mapping.lakes.classes]
+Lake = "Lac"

@@ -5,14 +5,16 @@ Module for the `DataInjecter` class responsible for injecting data into the data
     Class responsible for injecting data into the database.
 """
 
-import json
 from io import BytesIO
 import logging
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Iterator, Any
+from typing import Iterator, Any, cast
 import shapefile
+from geoalchemy2.elements import WKTElement
+from shapely.geometry import MultiPolygon, Polygon, shape as shapely_shape
 
+from .mapper import ZonesMapper
 from ..repositories import GeoZonesRepo
 from ..db_objects.geo_zones import GeographicZone as GeoZone
 from ...config import DatabaseSettings, DatabaseConfig
@@ -28,6 +30,7 @@ class AgregateZone:
     :param shx: BytesIO object representing the shape index file (.shx).
     :param dbf: BytesIO object representing the attribute table (.dbf).
     """
+    source_name: str
     shp: BytesIO
     shx: BytesIO
     dbf: BytesIO
@@ -50,12 +53,30 @@ class DataInjecter:
         self.path_list = path_list
         self.session = dc.session
         self.repo = GeoZonesRepo()
+        self.zones_mapper = None
 
-    def _iter_gemetries(self, reader: shapefile.Reader) -> Iterator[tuple[dict[str, Any], str]]:
+    def _iter_gemetries(
+        self,
+        reader: shapefile.Reader,
+    ) -> Iterator[tuple[dict[str, Any], WKTElement]]:
         """Iterates over geometries in the shapefile reader."""
         for shape_rec in reader.iterShapeRecords():
             if shape_rec.record is not None and shape_rec.shape is not None:
-                yield shape_rec.record.as_dict(), json.dumps(shape_rec.shape.__geo_interface__)
+                geo_interface = cast(
+                    dict[str, Any],
+                    shape_rec.shape.__geo_interface__,
+                )
+                geometry = shapely_shape(geo_interface)
+                if isinstance(geometry, Polygon):
+                    geometry = MultiPolygon([geometry])
+                elif not isinstance(geometry, MultiPolygon):
+                    raise ValueError(
+                        f"Type de géométrie non pris en charge : {geometry.geom_type}"
+                    )
+                yield (
+                    shape_rec.record.as_dict(),
+                    WKTElement(geometry.wkt, srid=4326),
+                )
 
     def _build_reader(self, geo_zone_file: AgregateZone) -> shapefile.Reader:
         """Builds a shapefile reader from the given aggregate zone file."""
@@ -85,6 +106,7 @@ class DataInjecter:
             if ".shp" in files and ".shx" in files and ".dbf" in files:
                 aggregates.append(
                     AgregateZone(
+                        source_name=base_name,
                         shp=BytesIO(files[".shp"].read_bytes()),
                         dbf=BytesIO(files[".dbf"].read_bytes()),
                         shx=BytesIO(files[".shx"].read_bytes()),
@@ -92,14 +114,32 @@ class DataInjecter:
                 )
         return aggregates
 
-    def inject_geo_zones(self, geo_zones_files: list[AgregateZone]):
+    def inject_geo_zones(self):
         """Injects geo zones into the database."""
-        for gzf in geo_zones_files:
+        self.zones_mapper = ZonesMapper()
+        for gzf in self._build_aggregates():
+            mapping_key = next(
+                (
+                    key for key in self.zones_mapper.mapping
+                    if gzf.source_name.endswith(f"_{key}")
+                ),
+                None,
+            )
+            if mapping_key is None:
+                raise ValueError(f"Aucun mapping trouvé pour {gzf.source_name}")
+
+            fields = self.zones_mapper.get_mapper(mapping_key)
+            classes = self.zones_mapper.get_classes()
             for properties, geometry in self._iter_gemetries(self._build_reader(gzf)):
+                source_kind = properties.get(fields["class"])
+                if not isinstance(source_kind, str):
+                    raise ValueError(
+                        f"Classe source absente pour le mapping {mapping_key}"
+                    )
                 geo_zone = GeoZone(
-                    kind=properties.get("kind"),
-                    code=properties.get("ISO_A3"),
-                    name=properties.get("NAME_LONG"),
+                    kind=classes.get(source_kind, source_kind),
+                    code=properties.get(fields["code"]),
+                    name=properties.get(fields["name"]),
                     boundary=geometry,
                 )
                 self.repo.add_geo_zone(geo_zone, commit=False)

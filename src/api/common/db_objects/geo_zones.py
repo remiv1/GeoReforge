@@ -1,7 +1,7 @@
 """Database object for geo zones."""
 
 from sqlalchemy import String
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 from geoalchemy2 import Geometry
 
 from . import Base, TABLE_ARGS
@@ -21,7 +21,7 @@ class GeographicZone(Base):  # pylint: disable=R0903
     code: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
-        unique=True,
+        unique=False,
         comment="Code of the geographic zone",
     )
     name: Mapped[str] = mapped_column(
@@ -38,4 +38,9 @@ class GeographicZone(Base):  # pylint: disable=R0903
         nullable=False,
         unique=False,
         comment="Boundary of the geographic zone",
+    )
+    geo_forged_items = relationship(
+        "GeoForgedItem",
+        back_populates="geo_zone",
+        cascade="all, delete-orphan",
     )

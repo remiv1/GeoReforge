@@ -6,6 +6,7 @@ Module for the `GeoZonesRepo` class responsible for managing geo zones in the da
 """
 
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 
 from .common import CommonRepo
 from ..db_objects.geo_zones import GeographicZone as GeoZone
@@ -32,19 +33,31 @@ class GeoZonesRepo(CommonRepo):
         """Adds a new geo zone to the database."""
         self.session.add(geo_zone)
         if commit:
-            self.session.commit()
+            try:
+                self.session.commit()
+            except SQLAlchemyError as e:
+                self.session.rollback()
+                raise e
         return geo_zone
 
     def delete_geo_zone(self, geo_zone: GeoZone, commit: bool = True):
         """Deletes a geo zone from the database."""
         self.session.delete(geo_zone)
         if commit:
-            self.session.commit()
+            try:
+                self.session.commit()
+            except SQLAlchemyError as e:
+                self.session.rollback()
+                raise e
         return geo_zone
 
     def update_geo_zone(self, geo_zone: GeoZone, commit: bool = True):
         """Updates an existing geo zone in the database."""
         self.session.add(geo_zone)
         if commit:
-            self.session.commit()
+            try:
+                self.session.commit()
+            except SQLAlchemyError as e:
+                self.session.rollback()
+                raise e
         return geo_zone

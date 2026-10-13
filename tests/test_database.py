@@ -15,6 +15,7 @@ from sqlalchemy.exc import OperationalError
 
 
 SOURCE = Path(__file__).resolve().parents[1] / "src"
+ZONES_CONFIG = Path(__file__).parent / "fixtures" / "zones.toml"
 WKT = "MULTIPOLYGON (((0 0, 1 0, 1 1, 0 0)))"
 
 
@@ -23,6 +24,7 @@ def bootstrap(**variables: str) -> subprocess.CompletedProcess[str]:
     environment = os.environ.copy()
     environment.update(variables)
     environment["PYTHONPATH"] = str(SOURCE)
+    environment["ZONES_CONFIG_PATH"] = str(ZONES_CONFIG)
     return subprocess.run(
         [sys.executable, "-m", "api.bootstrap"],
         env=environment,

@@ -5,6 +5,7 @@ Common data structures and utilities for the API.
 """
 from __future__ import annotations
 
+import os
 import tomllib
 from zipfile import ZipFile
 import io
@@ -21,7 +22,7 @@ class DataImporter:
     """Class responsible for importing data themes.
     
     :param file_path: Path to the TOML file containing data theme definitions.
-    :type file_path: str
+    :type file_path: str | Path | None
 
     .. Example::
         .. code-block:: python
@@ -35,8 +36,12 @@ class DataImporter:
     .. moduleauthor:: Rémi Verschuur <rverschuur@audit-io.fr>
     .. version:: 1.0
     """
-    def __init__(self, file_path: str = "/etc/app/zones.toml") -> None:
-        with open(file_path, "rb") as _f:
+    def __init__(self, file_path: str | Path | None = None) -> None:
+        config_path = file_path or os.environ.get(
+            "ZONES_CONFIG_PATH",
+            "/etc/app/zones.toml",
+        )
+        with open(config_path, "rb") as _f:
             f = tomllib.load(_f)
         self.url_base = f["source_path"]
         self.data_themes: list[DataTheme] = []

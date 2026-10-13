@@ -94,12 +94,15 @@ class DatabaseConfig:   # pylint: disable=R0903
     def initialize(self) -> None:
         """Initialise les prérequis spatiaux et les tables manquantes."""
         from api.common.db_objects.geo_zones import GeographicZone  # pylint: disable=C0415
+        from api.common.db_objects.geo_forged import GeoForged, GeoForgedItem  # pylint: disable=C0415
 
         with self.engine.begin() as connection:
             if self.settings.DB_TYPE == DbType.POSTGRESQL:
                 connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
                 connection.execute(CreateSchema(self.settings.DB_SCHEMA, if_not_exists=True))
             GeographicZone.metadata.create_all(connection, checkfirst=True)
+            GeoForged.metadata.create_all(connection, checkfirst=True)
+            GeoForgedItem.metadata.create_all(connection, checkfirst=True)
 
     def _create_engine(self):
         """
