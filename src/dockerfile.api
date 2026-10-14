@@ -30,6 +30,7 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY api/ /app/api/
+COPY auth/ /app/auth/
 
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh

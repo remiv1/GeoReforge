@@ -1,8 +1,15 @@
 """
 Module for the `GeoForged` class representing forged geographic entities in the database.
-"""
 
-from typing import Any
+.. module: src.api.common.db_objects.geo_forged
+
+.. class:: GeoForged: Represents a forged geographic entity in the database.
+.. class:: GeoForgedItem: Represents an item associated with a forged geographic entity.
+
+.. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
+.. version:: 1.0
+"""
+from __future__ import annotations
 
 from sqlalchemy import String, Integer, Date, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -12,9 +19,6 @@ from . import Base, TABLE_ARGS
 
 class GeoForged(Base):
     """
-    Represents a forged geographic entity in the database.
-    
-    :table: geo_forged
     :param id: ID of the forged geographic entity
     :type id: int
     :param code: Code of the forged geographic entity
@@ -36,9 +40,13 @@ class GeoForged(Base):
     :param geo_zones: List of geographic zones associated with the forged geographic entity
     :type geo_zones: list[GeoZone]
 
-    :meth to_dict: Converts the GeoForged object to a dictionary
+    .. methods::
+        - `to_dict()`: Converts the GeoForged object to a dictionary.
+        - `from_dict()`: Creates a GeoForged object from a dictionary.
 
-    .. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
+    .. table:: `geo_forged`
+
+    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
     .. version:: 1.0
     """
     __tablename__ = "geo_forged"
@@ -113,23 +121,6 @@ class GeoForged(Base):
             f"from_date={self.from_date}, author={self.author}, geometry={self.geometry})>"
         )
 
-    def to_dict(self) -> dict[str, Any]:
-        """
-        Converts the GeoForged object to a dictionary.
-        :return: Dictionary representation of the GeoForged object
-        :rtype: dict[str, Any]
-        """
-        return {
-            "id": self.id,
-            "code": self.code,
-            "name": self.name,
-            "description": self.description,
-            "version": self.version,
-            "from_date": self.from_date,
-            "author": self.author,
-            "geometry": self.geometry,
-        }
-
 
 class GeoForgedItem(Base):
     """
@@ -147,6 +138,12 @@ class GeoForgedItem(Base):
     :type geo_forged: GeoForged
     :param geo_zone: The associated geo zone
     :type geo_zone: GeoZone
+
+    .. methods::
+        - `to_dict()`: Converts the GeoForgedItem object to a dictionary.
+        - `from_dict()`: Creates a GeoForgedItem object from a dictionary.
+    
+    .. table:: `geo_forged_item`
 
     .. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
     .. version:: 1.0
@@ -203,24 +200,3 @@ class GeoForgedItem(Base):
         back_populates="geo_forged_items",
         foreign_keys=[geo_zone_id],
     )
-
-    def __repr__(self) -> str:
-        return (
-            f"<GeoForgedItem(id={self.id}, geo_forged_id={self.geo_forged_id}, "
-            f"geo_zone_id={self.geo_zone_id}, rank={self.rank}, operation={self.operation})>"
-        )
-
-    def to_dict(self) -> dict[str, Any]:
-        """
-        Converts the GeoForgedItem object to a dictionary.
-
-        :return: Dictionary representation of the GeoForgedItem object
-        :rtype: dict[str, Any]
-        """
-        return {
-            "id": self.id,
-            "geo_forged_id": self.geo_forged_id,
-            "geo_zone_id": self.geo_zone_id,
-            "rank": self.rank,
-            "operation": self.operation,
-        }

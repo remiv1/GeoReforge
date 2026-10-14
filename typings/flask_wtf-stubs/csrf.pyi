@@ -7,7 +7,7 @@ from wtforms.csrf.core import CSRF
 
 __all__ = ("generate_csrf", "validate_csrf", "csrf_meta_tag", "CSRFProtect")
 logger = ...
-def generate_csrf(secret_key=..., token_key=...): # -> Any:
+def generate_csrf(secret_key=..., token_key=...) -> str:    # type: ignore
     """Generate a CSRF token. The token is cached for a request, so multiple
     calls to this function will generate the same token.
 

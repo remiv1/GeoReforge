@@ -1,9 +1,13 @@
 """
 Module for the `DataInjecter` class responsible for injecting data into the database.
 
-.. class:: `DataInjecter`
-    Class responsible for injecting data into the database.
+.. class::
+    - `DataInjecter`: Class responsible for injecting data into the database.
+
+.. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
+.. version:: 1.0
 """
+from __future__ import annotations
 
 from io import BytesIO
 import logging
@@ -26,9 +30,17 @@ class AgregateZone:
     """
     Represents an aggregate zone with its associated shapefile, geometry, and attribute table.
 
+    :param source_name: Name of the source file for the aggregate zone.
+    :type source_name: str
     :param shp: BytesIO object representing the shapefile (.shp).
+    :type shp: BytesIO
     :param shx: BytesIO object representing the shape index file (.shx).
+    :type shx: BytesIO
     :param dbf: BytesIO object representing the attribute table (.dbf).
+    :type dbf: BytesIO
+    
+    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
+    .. version:: 1.0
     """
     source_name: str
     shp: BytesIO
@@ -47,7 +59,11 @@ class DataInjecter:
     """
 
     def __init__(self, path_list: list[Path]):
-        """Initializes the DataInjecter instance."""
+        """Initializes the DataInjecter instance.
+        
+        :param path_list: List of Path objects representing the paths to inject data from.
+        :type path_list: list[Path]
+        """
         ds = DatabaseSettings()
         dc = DatabaseConfig(ds)
         self.path_list = path_list
@@ -59,7 +75,13 @@ class DataInjecter:
         self,
         reader: shapefile.Reader,
     ) -> Iterator[tuple[dict[str, Any], WKTElement]]:
-        """Iterates over geometries in the shapefile reader."""
+        """Iterates over geometries in the shapefile reader.
+        
+        :param reader: Shapefile reader object.
+        :type reader: shapefile.Reader
+        :return: Iterator of tuples containing the attribute dictionary and WKT geometry.
+        :rtype: Iterator[tuple[dict[str, Any], WKTElement]]
+        """
         for shape_rec in reader.iterShapeRecords():
             if shape_rec.record is not None and shape_rec.shape is not None:
                 geo_interface = cast(
@@ -70,6 +92,10 @@ class DataInjecter:
                 if isinstance(geometry, Polygon):
                     geometry = MultiPolygon([geometry])
                 elif not isinstance(geometry, MultiPolygon):
+                    LOGGER.exception(
+                        "Unsupported geometry type: %s",
+                        geometry.geom_type,
+                    )
                     raise ValueError(
                         f"Type de géométrie non pris en charge : {geometry.geom_type}"
                     )
@@ -79,7 +105,13 @@ class DataInjecter:
                 )
 
     def _build_reader(self, geo_zone_file: AgregateZone) -> shapefile.Reader:
-        """Builds a shapefile reader from the given aggregate zone file."""
+        """Builds a shapefile reader from the given aggregate zone file.
+        
+        :param geo_zone_file: Aggregate zone file containing the shapefile components.
+        :type geo_zone_file: AgregateZone
+        :return: Shapefile reader object.
+        :rtype: shapefile.Reader
+        """
         return shapefile.Reader(
             shp=geo_zone_file.shp,
             shx=geo_zone_file.shx,
@@ -92,6 +124,9 @@ class DataInjecter:
         - group files by name for each extention
         - match files with the same base name to form an aggregate zone
         - create AgregateZone instances for each matched set of files
+
+        :return: List of aggregate zone instances.
+        :rtype: list[AgregateZone]
         """
         aggregates: list[AgregateZone] = []
         grouped_files: dict[str, dict[str, Path]] = {}
@@ -114,8 +149,13 @@ class DataInjecter:
                 )
         return aggregates
 
-    def inject_geo_zones(self):
-        """Injects geo zones into the database."""
+    def inject_geo_zones(self) -> None:
+        """Injects geo zones into the database.
+        
+        :return: None
+        :rtype: None
+        :raises ValueError: If no mapping is found for a given aggregate zone.
+        """
         self.zones_mapper = ZonesMapper()
         for gzf in self._build_aggregates():
             mapping_key = next(
@@ -126,6 +166,10 @@ class DataInjecter:
                 None,
             )
             if mapping_key is None:
+                LOGGER.exception(
+                    "No mapping found for aggregate zone: %s",
+                    gzf.source_name,
+                )
                 raise ValueError(f"Aucun mapping trouvé pour {gzf.source_name}")
 
             fields = self.zones_mapper.get_mapper(mapping_key)
@@ -133,6 +177,10 @@ class DataInjecter:
             for properties, geometry in self._iter_gemetries(self._build_reader(gzf)):
                 source_kind = properties.get(fields["class"])
                 if not isinstance(source_kind, str):
+                    LOGGER.exception(
+                        "Source kind is not a string for aggregate zone: %s",
+                        gzf.source_name,
+                    )
                     raise ValueError(
                         f"Classe source absente pour le mapping {mapping_key}"
                     )
@@ -143,4 +191,8 @@ class DataInjecter:
                     boundary=geometry,
                 )
                 self.repo.add_geo_zone(geo_zone, commit=False)
-        self.repo.commit()
+        try:
+            self.repo.commit()
+        except Exception as e:
+            LOGGER.exception("Failed to commit geo zones to the database: %s", e)
+            raise

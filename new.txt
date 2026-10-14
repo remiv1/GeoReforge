@@ -1,0 +1,72 @@
+diff --git a/README.fr.md b/README.fr.md
+index 063e179..740b97c 100644
+--- a/README.fr.md
++++ b/README.fr.md
+@@ -17,6 +17,34 @@ De nombreuses décisions réglementaires, fiscales, administratives, logistiques
+ 
+ Les référentiels géographiques fournissent des pays, des régions et des frontières administratives, mais rarement les zones métier propres aux besoins des organisations. GeoReforge vise à combler cet écart.
+ 
++## Index
++
++- [GeoReforge](#georeforge)
++  - [Index](#index)
++  - [Principe](#principe)
++  - [Philosophie](#philosophie)
++  - [Cas d'usage](#cas-dusage)
++    - [Réglementation](#réglementation)
++    - [Fiscalité](#fiscalité)
++    - [Logistique](#logistique)
++    - [Analyse métier](#analyse-métier)
++    - [Data Engineering](#data-engineering)
++  - [Fonctionnalités visées](#fonctionnalités-visées)
++    - [Référentiels géographiques](#référentiels-géographiques)
++    - [Construction de zones](#construction-de-zones)
++    - [Versionnement et reproductibilité](#versionnement-et-reproductibilité)
++    - [Export](#export)
++    - [API et interface Web](#api-et-interface-web)
++  - [Architecture](#architecture)
++  - [Objectifs du projet](#objectifs-du-projet)
++  - [Public visé](#public-visé)
++  - [Utilisation](#utilisation)
++    - [Assistant local de configuration](#assistant-local-de-configuration)
++    - [RUN](#run)
++    - [BUILD](#build)
++    - [Intégration dans un compose](#intégration-dans-un-compose)
++  - [Gestion des accès](#gestion-des-accès)
++
+ ## Principe
+ 
+ À partir de référentiels géographiques tels que [Natural Earth](https://www.naturalearthdata.com/), [GADM](https://gadm.org/) ou [geoBoundaries](https://www.geoboundaries.org/), GeoReforge vise à permettre la composition de nouvelles zones à partir de territoires existants.
+@@ -242,3 +270,9 @@ services:
+ ```
+ 
+ Il vous faudra définir les variables d'environnement dans un fichier .env à la racine de votre projet ainsi que le fichier `config.py` suivant le modèle dans [config.py](./src/config.py).
++
++## Gestion des accès
++
++Par défaut, GeoReforge utilise un mode d'accès libre (`none`), ce qui signifie qu'aucune authentification n'est requise pour accéder à l'application et à l'ensemble de ses fonctionnalités.
++
++Pour les autres cas, GeoReforge peut être configuré pour utiliser un mode d'accès interne (`internal`) ou externe (`external`). Vous trouverez plus de détails sur la configuration de ces modes dans la documentation dédiée à la [gestion des accès](./Users.fr.md) et à leur configuration.
+diff --git a/src/env.conf b/src/env.conf
+index e0103ff..2acd2ea 100644
+--- a/src/env.conf
++++ b/src/env.conf
+@@ -19,4 +19,15 @@ LOG_LEVEL=info
+ FLASK_ENV=production
+ FLASK_DEBUG=false
+ FLASK_APP=/app/api/main.py
+-SECRET_KEY=default_secret_key
+\ No newline at end of file
++SECRET_KEY=default_secret_key
++
++# Environnement lié à la configuration de l'authentification
++AUTH_MODE=none  # Options: none | internal | external
++# Si `internal`
++ADMIN_USERNAME=admin
++ADMIN_PASSWORD=admin
++# Si `external`
++OIDC_ISSUER=
++OIDC_CLIENT_ID=
++OIDC_CLIENT_SECRET=
++OIDC_REDIRECT_URI=
+\ No newline at end of file

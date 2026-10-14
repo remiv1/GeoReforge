@@ -219,12 +219,7 @@ def test_injecter_selects_each_mapping_and_translates_classes(
     data_injecter = DataInjecter.__new__(DataInjecter)
     data_injecter.repo = repository    # type: ignore
 
-    data_injecter.inject_geo_zones(
-        [
-            aggregate("ne_10m_admin_0_countries", COUNTRY),
-            aggregate("ne_10m_lakes", LAKE),
-        ]
-    )
+    data_injecter.inject_geo_zones()
 
     assert [(zone.kind, zone.code, zone.name) for zone in repository.zones] == [
         ("Pays", "TST", "Testland"),
@@ -249,15 +244,10 @@ def test_injecter_rejects_unknown_mapping_and_missing_source_class(
     data_injecter.repo = repository    # type: ignore
 
     with pytest.raises(ValueError, match="Aucun mapping trouvé"):
-        data_injecter.inject_geo_zones(
-            [aggregate("ne_10m_unknown_layer", {"featurecla": "unknown"})]
-        )
+        data_injecter.inject_geo_zones()
 
-    missing_class = {"NAME_LONG": "Testland", "ISO_A3": "TST"}
     with pytest.raises(ValueError, match="Classe source absente"):
-        data_injecter.inject_geo_zones(
-            [aggregate("ne_10m_admin_0_countries", missing_class)]
-        )
+        data_injecter.inject_geo_zones()
     assert repository.commit_count == 0
 
 
@@ -339,8 +329,8 @@ def test_full_injection_persists_zones(
     try:
         downloaded_files = DataImporter(str(ZONES_CONFIG)).download_files(tmp_path)
         data_injecter = DataInjecter(downloaded_files.list_downloaded_files(tmp_path))
-        aggregates = data_injecter._build_aggregates() # type: ignore # pylint: disable=W0212
-        data_injecter.inject_geo_zones(aggregates)
+        data_injecter._build_aggregates() # type: ignore # pylint: disable=W0212
+        data_injecter.inject_geo_zones()
 
         rows = database.session.execute(
             select(GeographicZone.kind, GeographicZone.code, GeographicZone.name).where(

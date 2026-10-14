@@ -1,12 +1,20 @@
 """
 Common data structures and utilities for the API.
 
-.. class:: `DataImporter` class responsible for importing data themes.
+.. class::
+    - `DataImporter`: class responsible for importing data themes.
+
+.. constants::
+    - `DEFAULT_DOWNLOAD_PATH`: The default path where data files are downloaded.
+
+.. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
+.. version:: 1.0.0
 """
 from __future__ import annotations
 
 import os
 import tomllib
+import logging
 from zipfile import ZipFile
 import io
 from pathlib import Path
@@ -17,6 +25,7 @@ import requests
 from ..other_objects import Precision, PRECISION_MAP, DataTheme
 
 DEFAULT_DOWNLOAD_PATH = Path("/tmp/app/")
+LOGGER = logging.getLogger(__name__)
 
 class DataImporter:
     """Class responsible for importing data themes.
@@ -24,19 +33,25 @@ class DataImporter:
     :param file_path: Path to the TOML file containing data theme definitions.
     :type file_path: str | Path | None
 
-    .. Example::
+    .. example::
         .. code-block:: python
             di = DataImporter()
             url = di.data_themes[0].url_route if di.data_themes else None
             >>> https://naturalearth.s3.amazonaws.com/110m_cultural/ne_110m_admin_0_countries.zip
 
-    .. Note::
+    .. note::
         Ensure that the TOML file follows the expected structure for data themes.
     
-    .. moduleauthor:: Rémi Verschuur <rverschuur@audit-io.fr>
+    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
     .. version:: 1.0
     """
     def __init__(self, file_path: str | Path | None = None) -> None:
+        """
+        Initializes the DataImporter instance.
+        
+        :param file_path: Path to the TOML file containing data theme definitions.
+        :type file_path: str | Path | None
+        """
         config_path = file_path or os.environ.get(
             "ZONES_CONFIG_PATH",
             "/etc/app/zones.toml",
@@ -58,9 +73,9 @@ class DataImporter:
         :type zone_list: list[dict[str, str]]
         :param zone_name: The name of the zone category (e.g., "cultural", "physical", "raster").
         **`Use the DataFamily class enumeration for valid zone categories.`**
+        :type zone_name: str
         :returns: None
         :rtype: None
-        :type zone_name: str
         """
         for dt in zone_list:
             for p in dt.get("precision", ["high"]):
@@ -101,9 +116,10 @@ class DataImporter:
                                  open(f"{download_path}/{file_name}", "wb") as out_file:
                                 out_file.write(f.read())
             else:
-                print(
-                    f"Failed to download {theme.url_route}, "
-                    f"status code: {response.status_code}"
+                LOGGER.exception(
+                    "Failed to download %s, status code: %s",
+                    theme.url_route,
+                    response.status_code,
                 )
         return self
 
@@ -125,9 +141,12 @@ class DataImporter:
         """
         path = Path(download_path)
         if not path.exists():
+            LOGGER.debug("Download path does not exist: %s", path)
             return []
         if file_extension:
+            LOGGER.debug("Filtering downloaded files by extension: %s", file_extension)
             return list(path.glob(f"*.{file_extension}"))
+        LOGGER.debug("Listing all downloaded files without filtering by extension.")
         return list(path.glob("*"))
 
     def clear_downloaded_files(
@@ -147,11 +166,15 @@ class DataImporter:
         :rtype: None
         """
         if not download_path.exists():
+            LOGGER.debug("Download path does not exist: %s", download_path)
             return
         if file_extension:
+            LOGGER.debug("Clearing downloaded files with extension: %s", file_extension)
             files_to_delete = download_path.glob(f"*.{file_extension}")
         else:
+            LOGGER.debug("Clearing all downloaded files without filtering by extension.")
             files_to_delete = download_path.glob("*")
         for file_path in files_to_delete:
             if file_path.is_file():
+                LOGGER.debug("Deleting file: %s", file_path)
                 file_path.unlink()

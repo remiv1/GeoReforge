@@ -1,8 +1,13 @@
 """
 Module defining the DataTheme data structure.
 
-.. class:: `DataTheme` data structure.
+.. classes::
+    - `DataTheme` data structure.
+
+.. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
+.. version:: 1.0.0
 """
+from __future__ import annotations
 
 from dataclasses import dataclass
 
@@ -19,7 +24,7 @@ class DataTheme:
     :type url_route: str
 
     .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
-    .. version:: 1.0
+    .. version:: 1.0.0
     """
     name: str
     precisions: int

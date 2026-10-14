@@ -17,6 +17,34 @@ Regulatory, tax, administrative, logistics, and commercial decisions often depen
 
 Geographic datasets provide countries, regions, and administrative boundaries, but rarely the business-specific zones organizations need. GeoReforge aims to bridge that gap.
 
+## Index
+
+- [GeoReforge](#georeforge)
+  - [Index](#index)
+  - [How It Works](#how-it-works)
+  - [Philosophy](#philosophy)
+  - [Use Cases](#use-cases)
+    - [Regulation](#regulation)
+    - [Taxation](#taxation)
+    - [Logistics](#logistics)
+    - [Business Analysis](#business-analysis)
+    - [Data Engineering](#data-engineering)
+  - [Target Capabilities](#target-capabilities)
+    - [Geographic Datasets](#geographic-datasets)
+    - [Zone Construction](#zone-construction)
+    - [Versioning and Reproducibility](#versioning-and-reproducibility)
+    - [Export](#export)
+    - [API and Web Interface](#api-and-web-interface)
+  - [Architecture](#architecture)
+  - [Project Goals](#project-goals)
+  - [Who It Is For](#who-it-is-for)
+  - [Usage](#usage)
+    - [Local Configuration Assistant](#local-configuration-assistant)
+    - [Run](#run)
+    - [Build](#build)
+    - [Docker Compose](#docker-compose)
+  - [Access Management](#access-management)
+
 ## How It Works
 
 Starting from geographic datasets such as [Natural Earth](https://www.naturalearthdata.com/), [GADM](https://gadm.org/), or [geoBoundaries](https://www.geoboundaries.org/), GeoReforge aims to let you compose new zones from existing territories.
@@ -179,6 +207,19 @@ docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/zones.toml:/etc/app/zo
 
 To create the `zones.toml` file, follow the [zones.toml guide](doc/Zones.md).
 
+### Local Configuration Assistant
+
+A terminal interface lets you select Natural Earth datasets, explore a SHP file on demand, define mappings, and prepare `zones.toml`. Its dependencies are kept separate from those of the API and Docker image:
+
+```sh
+python3.14 -m venv .venv-zones
+. .venv-zones/bin/activate
+python -m pip install -r scripts/zones_maker/requirements.txt
+PYTHONPATH=scripts python -m zones_maker.main
+```
+
+A dataset is downloaded only when you explore it, and only if the selected SHP file is not already present in `tmp/`.
+
 ### Run
 
 To run GeoReforge with Docker, use the following command:
@@ -229,3 +270,9 @@ services:
 ```
 
 Define the environment variables in a `.env` file at the root of your project, and create a `config.py` file based on the [configuration template](./src/config.py).
+
+## Access Management
+
+By default, GeoReforge uses open access mode (`none`), which means no authentication is required to access the application or any of its features.
+
+For other use cases, GeoReforge can be configured to use internal (`internal`) or external (`external`) access. For details on configuring these modes, see the dedicated [access management documentation](./Users.md).

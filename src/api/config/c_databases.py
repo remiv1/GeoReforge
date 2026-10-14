@@ -1,5 +1,17 @@
-"""Database configuration for the GeoReforge API."""
+"""Database configuration for the GeoReforge API.
 
+.. classes::
+    - `DbType`: Enumeration of supported database types.
+    - `Settings`: Contains the database configuration settings for the GeoReforge API.
+    - `DatabaseConfig`: Represents the database configuration and provides methods for
+    initialization and engine creation.
+
+.. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
+.. version:: 1.0.0
+"""
+from __future__ import annotations
+
+import logging
 from enum import Enum
 from typing import Any
 import sqlite3
@@ -10,9 +22,27 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from pydantic import computed_field, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+LOGGER = logging.getLogger(__name__)
+
 
 class DbType(str, Enum):
-    """Enumeration of supported database types."""
+    """Enumeration of supported database types.
+    
+    .. SQLITE:: SQLite database type.
+        - type: str
+        - value: "sqlite"
+
+    .. POSTGRESQL:: PostgreSQL database type.
+        - type: str
+        - value: "postgres"
+
+    .. MYSQL:: MySQL database type.
+        - type: str
+        - value: "mysql"
+    .. MARIADB:: MariaDB database type.
+        - type: str
+        - value: "mariadb"
+    """
     SQLITE = "sqlite"
     POSTGRESQL = "postgres"
     MYSQL = "mysql"
@@ -20,7 +50,39 @@ class DbType(str, Enum):
 
 
 class Settings(BaseSettings):
-    """Database settings for the GeoReforge API."""
+    """Database settings for the GeoReforge API.
+    
+    :param model_config: Configuration for the Pydantic model.
+    :type model_config: SettingsConfigDict
+    :param EXTERNAL_DB: Indicates if an external database is used.
+    :type EXTERNAL_DB: bool
+    :param DB_PATH: Path to the SQLite database file.
+    :type DB_PATH: str
+    :param DB_TYPE: Type of the database (SQLite, PostgreSQL, MySQL, MariaDB).
+    :type DB_TYPE: DbType
+    :param DB_HOST: Database host.
+    :type DB_HOST: str
+    :param DB_PORT: Database port.
+    :type DB_PORT: int
+    :param DB_USER: Database user.
+    :type DB_USER: str
+    :param DB_PASSWORD: Database password.
+    :type DB_PASSWORD: str
+    :param DB_NAME: Database name.
+    :type DB_NAME: str
+    :param DB_SCHEMA: Database schema.
+    :type DB_SCHEMA: str
+    :param db_url: Constructed database URL based on the configuration.
+    :type db_url: str | URL
+
+    .. methods::
+        - `db_url()`: Returns the constructed database URL based on the configuration.
+        - `validate_database_config()`: Validates the database configuration after model
+        initialization.
+
+    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
+    .. version:: 1.0.0
+    """
     model_config = SettingsConfigDict(
         env_file = "/etc/app/env.conf",
         extra = "ignore",
@@ -42,10 +104,20 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def db_url(self) -> str | URL:
-        """Construct the database URL from the individual components."""
+        """Construct the database URL from the individual components.
+
+        :return: Constructed database URL based on the configuration.
+        :rtype: str | URL
+
+        :raises ValueError: If the database configuration is invalid.
+        """
         if not self.EXTERNAL_DB and self.DB_TYPE != DbType.SQLITE:
+            LOGGER.exception(
+                "Invalid database configuration: If not external, DB_TYPE have to be SQLITE"
+            )
             raise ValueError(f"If not external, DB_TYPE have to be {DbType.SQLITE}")
         if not self.EXTERNAL_DB or self.DB_TYPE == DbType.SQLITE:
+            LOGGER.info("Using SQLite database at path: %s", self.DB_PATH)
             return f"sqlite:///{self.DB_PATH}"
         url_param: dict[str, Any] = {
             "username": self.DB_USER,
@@ -54,10 +126,20 @@ class Settings(BaseSettings):
             "port": self.DB_PORT,
             "database": self.DB_NAME,
         }
+        hpd_string = (
+            "Host: %s, Port: %s, Database: %s",
+            self.DB_HOST,
+            self.DB_PORT,
+            self.DB_NAME,
+        )
         if self.DB_TYPE == DbType.POSTGRESQL:
             url_base = URL.create(
                 drivername="postgresql+psycopg2",
                 **url_param,
+            )
+            LOGGER.info(
+                "Using PostgreSQL database with postresql+psycopg2. %s",
+                hpd_string,
             )
             return url_base
         if self.DB_TYPE == DbType.MYSQL:
@@ -65,22 +147,67 @@ class Settings(BaseSettings):
                 drivername="mysql+pymysql",
                 **url_param,
             )
+            LOGGER.info(
+                "Using MySQL database with mysql+pymysql. %s",
+                hpd_string,
+            )
             return url_base
         if self.DB_TYPE == DbType.MARIADB:
+            LOGGER.info(
+                "Using MariaDB database with mariadb+pymysql. %s",
+                hpd_string,
+            )
             return URL.create(drivername="mariadb+pymysql", **url_param)
+        LOGGER.exception(
+            "Unsupported DB_TYPE for external database: %s. " +
+            "Supported types are: %s",
+            self.DB_TYPE,
+            [
+                DbType.SQLITE.value,
+                DbType.POSTGRESQL.value,
+                DbType.MYSQL.value,
+                DbType.MARIADB.value,
+            ])
         raise ValueError(f"Unsupported DB_TYPE for external database: {self.DB_TYPE}")
 
     @model_validator(mode="after")
     def validate_database_config(self):
-        """Validate the database configuration after model initialization."""
+        """Validate the database configuration after model initialization.
+
+        :raises ValueError: If the database configuration is invalid.
+        """
         if not self.EXTERNAL_DB and self.DB_TYPE != DbType.SQLITE:
+            LOGGER.exception(
+                "If not external, DB_TYPE have to be %s. ",
+                DbType.SQLITE,
+            )
             raise ValueError(f"If not external, DB_TYPE have to be {DbType.SQLITE}")
         return self
 
 
 class DatabaseConfig:   # pylint: disable=R0903
-    """Class representing the database configuration."""
+    """Class representing the database configuration.
+    
+    :param settings: The application settings containing the database configuration.
+    :type settings: Settings
+
+    .. methods::
+        - `__init__`: Initializes the database configuration with the provided settings.
+        - `initialize`: Initializes the spatial prerequisites and missing tables.
+        - `_create_engine`: Creates the SQLAlchemy engine based on the configuration.
+        - `_configure_sqlite`: Configures the SQLite engine.
+        - `_configure_postgresql`: Configures the PostgreSQL engine.
+        - `_configure_mysql`: Configures the MySQL/MariaDB engine.
+
+    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
+    .. version:: 1.0.0
+    """
     def __init__(self, settings: Settings):
+        """Initialize the database configuration with the provided settings.
+
+        :param settings: The application settings containing the database configuration.
+        :type settings: Settings
+        """
         self.settings = settings
         self.engine = self._create_engine()
         self.session = scoped_session(
@@ -92,9 +219,16 @@ class DatabaseConfig:   # pylint: disable=R0903
         )
 
     def initialize(self) -> None:
-        """Initialise les prérequis spatiaux et les tables manquantes."""
+        """Initialize the spatial prerequisites and the missing tables.
+        
+        :return: None
+        :rtype: None
+
+        :raises SQLAlchemyError: If there is an error during the initialization of the database.
+        """
         from api.common.db_objects.geo_zones import GeographicZone  # pylint: disable=C0415
         from api.common.db_objects.geo_forged import GeoForged, GeoForgedItem  # pylint: disable=C0415
+        from api.common.db_objects.users import User, Group, UserGroup, UserSession  # pylint: disable=C0415
 
         with self.engine.begin() as connection:
             if self.settings.DB_TYPE == DbType.POSTGRESQL:
@@ -103,11 +237,18 @@ class DatabaseConfig:   # pylint: disable=R0903
             GeographicZone.metadata.create_all(connection, checkfirst=True)
             GeoForged.metadata.create_all(connection, checkfirst=True)
             GeoForgedItem.metadata.create_all(connection, checkfirst=True)
+            User.metadata.create_all(connection, checkfirst=True)
+            Group.metadata.create_all(connection, checkfirst=True)
+            UserGroup.metadata.create_all(connection, checkfirst=True)
+            UserSession.metadata.create_all(connection, checkfirst=True)
 
-    def _create_engine(self):
+    def _create_engine(self) -> Engine:
         """
         Create the SQLAlchemy engine separating the configuration between SQLite
         and external databases.
+
+        :return: The configured SQLAlchemy engine.
+        :rtype: Engine
         """
         engine = create_engine(self.settings.db_url)
 
@@ -120,13 +261,21 @@ class DatabaseConfig:   # pylint: disable=R0903
 
         return engine
 
-    def _configure_sqlite(self, engine: Engine):
-        """Configure SQLite-specific settings for the SQLAlchemy engine."""
+    def _configure_sqlite(self, engine: Engine) -> None:
+        """Configure SQLite-specific settings for the SQLAlchemy engine.
+        
+        :param engine: The SQLAlchemy engine to configure for SQLite.
+        :type engine: Engine
+        :return: None
+        :rtype: None
+        """
         @event.listens_for(engine, "connect")
         def load_spatialite(dbapi_connection: sqlite3.Connection, _connection_record: Any):
             dbapi_connection.enable_load_extension(True)
             try:
                 dbapi_connection.load_extension("mod_spatialite")
+            except sqlite3.OperationalError as ex:
+                LOGGER.exception("Failed to load SpatiaLite extension: %s", ex)
             finally:
                 dbapi_connection.enable_load_extension(False)
             if not dbapi_connection.execute(
@@ -134,8 +283,20 @@ class DatabaseConfig:   # pylint: disable=R0903
             ).fetchone():
                 dbapi_connection.execute("SELECT InitSpatialMetaData(1)")
 
-    def _configure_postgresql(self, engine: Engine):
-        """Configure PostgreSQL-specific settings for the SQLAlchemy engine."""
+    def _configure_postgresql(self, engine: Engine) -> None:
+        """Configure PostgreSQL-specific settings for the SQLAlchemy engine.
 
-    def _configure_mysql(self, engine: Engine):
-        """Configure MySQL-specific settings for the SQLAlchemy engine."""
+        :param engine: The SQLAlchemy engine to configure for PostgreSQL.
+        :type engine: Engine
+        :return: None
+        :rtype: None
+        """
+
+    def _configure_mysql(self, engine: Engine) -> None:
+        """Configure MySQL-specific settings for the SQLAlchemy engine.
+
+        :param engine: The SQLAlchemy engine to configure for MySQL.
+        :type engine: Engine
+        :return: None
+        :rtype: None
+        """

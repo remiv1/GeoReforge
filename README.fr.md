@@ -17,6 +17,34 @@ De nombreuses décisions réglementaires, fiscales, administratives, logistiques
 
 Les référentiels géographiques fournissent des pays, des régions et des frontières administratives, mais rarement les zones métier propres aux besoins des organisations. GeoReforge vise à combler cet écart.
 
+## Index
+
+- [GeoReforge](#georeforge)
+  - [Index](#index)
+  - [Principe](#principe)
+  - [Philosophie](#philosophie)
+  - [Cas d'usage](#cas-dusage)
+    - [Réglementation](#réglementation)
+    - [Fiscalité](#fiscalité)
+    - [Logistique](#logistique)
+    - [Analyse métier](#analyse-métier)
+    - [Data Engineering](#data-engineering)
+  - [Fonctionnalités visées](#fonctionnalités-visées)
+    - [Référentiels géographiques](#référentiels-géographiques)
+    - [Construction de zones](#construction-de-zones)
+    - [Versionnement et reproductibilité](#versionnement-et-reproductibilité)
+    - [Export](#export)
+    - [API et interface Web](#api-et-interface-web)
+  - [Architecture](#architecture)
+  - [Objectifs du projet](#objectifs-du-projet)
+  - [Public visé](#public-visé)
+  - [Utilisation](#utilisation)
+    - [Assistant local de configuration](#assistant-local-de-configuration)
+    - [RUN](#run)
+    - [BUILD](#build)
+    - [Intégration dans un compose](#intégration-dans-un-compose)
+  - [Gestion des accès](#gestion-des-accès)
+
 ## Principe
 
 À partir de référentiels géographiques tels que [Natural Earth](https://www.naturalearthdata.com/), [GADM](https://gadm.org/) ou [geoBoundaries](https://www.geoboundaries.org/), GeoReforge vise à permettre la composition de nouvelles zones à partir de territoires existants.
@@ -242,3 +270,9 @@ services:
 ```
 
 Il vous faudra définir les variables d'environnement dans un fichier .env à la racine de votre projet ainsi que le fichier `config.py` suivant le modèle dans [config.py](./src/config.py).
+
+## Gestion des accès
+
+Par défaut, GeoReforge utilise un mode d'accès libre (`none`), ce qui signifie qu'aucune authentification n'est requise pour accéder à l'application et à l'ensemble de ses fonctionnalités.
+
+Pour les autres cas, GeoReforge peut être configuré pour utiliser un mode d'accès interne (`internal`) ou externe (`external`). Vous trouverez plus de détails sur la configuration de ces modes dans la documentation dédiée à la [gestion des accès](./Users.fr.md) et à leur configuration.

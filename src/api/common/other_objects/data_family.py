@@ -1,8 +1,13 @@
 """
 Module defining the DataFamily enumeration.
 
-.. class:: `DataFamily` enumeration for data families.
+.. classes::
+    - `DataFamily` enumeration for data families.
+
+.. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
+.. version:: 1.0.0
 """
+from __future__ import annotations
 
 from enum import Enum
 
@@ -10,14 +15,17 @@ class DataFamily(Enum):
     """
     Enumeration of possible data families.
     
-    .. attribute:: CULTURAL
-        Represents cultural data. Value is "cultural".
+    .. CULTURAL:: Cultural data.
+        - type: str
+        - value: "cultural"
 
-    .. attribute:: PHYSICAL
-        Represents physical data. Value is "physical".
+    .. PHYSICAL:: Physical data.
+        - type: str
+        - value: "physical"
 
-    .. attribute:: RASTER
-        Represents raster data. Value is "raster".
+    .. RASTER:: Raster data.
+        - type: str
+        - value: "raster"
     
     .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
     .. version:: 1.0

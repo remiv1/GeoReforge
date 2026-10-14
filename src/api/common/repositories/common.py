@@ -1,9 +1,13 @@
 """
 Module for common repository functionalities.
 
-.. author:: Remi Verschuur <remi.verschuur@example.com>
-.. version:: 1.0
+.. classes::
+    - `CommonRepo` class for common repository functionalities.
+
+.. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
+.. version:: 1.0.0
 """
+from __future__ import annotations
 
 import logging
 
@@ -11,19 +15,15 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ...config import DatabaseSettings, DatabaseConfig
 
-logger = logging.getLogger(__name__)
-
 class CommonRepo:
     """
     Class responsible for common repository functionalities.
 
-    .. method:: `commit()`
-        Commits the current transaction to the database.
+    .. methods::
+        - `commit()`: Commits the current transaction to the database.
+        - `rollback()`: Rolls back the current transaction in the database.
 
-    .. method:: `rollback()`
-        Rolls back the current transaction in the database.
-
-    .. author:: Remi Verschuur <rverschuur@audit-io.fr>
+    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
     .. version:: 1.0
     """
     def __init__(self):
@@ -36,6 +36,7 @@ class CommonRepo:
         dc = DatabaseConfig(ds)
         self.session = dc.session
         self.engine = dc.engine
+        self.logger = logging.getLogger(__name__)
 
     def commit(self) -> bool:
         """Commits the current transaction to the database.
@@ -48,7 +49,7 @@ class CommonRepo:
             return True
         except SQLAlchemyError as e:
             self.session.rollback()
-            logger.exception("Commit failed, transaction rolled back.", exc_info=e)
+            self.logger.exception("Commit failed, transaction rolled back.", exc_info=e)
             return False
 
     def rollback(self) -> bool:
@@ -61,5 +62,5 @@ class CommonRepo:
             self.session.rollback()
             return True
         except SQLAlchemyError as e:
-            logger.exception("Rollback failed.", exc_info=e)
+            self.logger.exception("Rollback failed.", exc_info=e)
             return False
