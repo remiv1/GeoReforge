@@ -7,7 +7,7 @@ Database objects for users.
     - `UserSession`: Represents a session of a user in the database.
 
 .. constant::
-    - `__USER_ID`: Description of the unique identifier of the user in the database.
+    - `_USER_ID`: Description of the unique identifier of the user in the database.
 
 .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
 .. version:: 1.0
@@ -20,9 +20,9 @@ from datetime import datetime, timezone
 from sqlalchemy import Integer, String, DateTime, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from . import Base, TABLE_ARGS
+from . import Base, TABLE_ARGS, foreign_key_target, table_key
 
-__USER_ID = "Unique identifier of the user"
+_USER_ID = "Unique identifier of the user"
 
 class User(Base):
     """Database object for a user in the database.
@@ -54,7 +54,7 @@ class User(Base):
         Integer,
         primary_key=True,
         autoincrement=True,
-        comment=__USER_ID,
+        comment=_USER_ID,
     )
     username: Mapped[str] = mapped_column(
         String(50),
@@ -93,7 +93,7 @@ class User(Base):
     )
     groups: Mapped[list["Group"]] = relationship(
         "Group",
-        secondary="user_groups",
+        secondary=lambda: Base.metadata.tables[table_key("user_groups")],
         back_populates="users",
     )
     sessions: Mapped[list["UserSession"]] = relationship(
@@ -221,7 +221,7 @@ class Group(Base):
     )
     users: Mapped[list["User"]] = relationship(
         "User",
-        secondary="user_groups",
+        secondary=lambda: Base.metadata.tables[table_key("user_groups")],
         back_populates="groups",
     )
 
@@ -258,12 +258,12 @@ class UserGroup(Base):
     )
     user_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("users.id"),
-        comment=__USER_ID,
+        ForeignKey(foreign_key_target("users")),
+        comment=_USER_ID,
     )
     group_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("groups.id"),
+        ForeignKey(foreign_key_target("groups")),
         comment="Unique identifier of the group",
     )
     activated: Mapped[bool] = mapped_column(
@@ -310,9 +310,9 @@ class UserSession(Base):
     )
     user_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("users.id"),
+        ForeignKey(foreign_key_target("users")),
         nullable=False,
-        comment=__USER_ID,
+        comment=_USER_ID,
     )
     session_token: Mapped[str] = mapped_column(
         String(255),

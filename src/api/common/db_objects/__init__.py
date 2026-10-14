@@ -6,6 +6,12 @@
 .. constantes::
     - `TABLE_ARGS`: default table arguments for the database objects.
 
+.. functions::
+    - `foreign_key_target(table_name: str, column_name: str = "id") -> str`: Constructs a
+    foreign key reference compatible with the active schema.
+    - `table_key(table_name: str) -> str`: Returns the metadata key of a table according to
+    the active schema.
+
 .. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
 .. version:: 1.0
 """
@@ -23,6 +29,31 @@ settings = DatabaseSettings()
 
 TABLE_ARGS = {"schema": settings.DB_SCHEMA} if settings.DB_TYPE == DbType.POSTGRESQL else {}
 LOGGER = logging.getLogger(__name__)
+
+
+def foreign_key_target(table_name: str, column_name: str = "id") -> str:
+    """Constructs a foreign key reference compatible with the active schema.
+
+    :param table_name: Name of the table for the foreign key reference.
+    :type table_name: str
+    :param column_name: Name of the column for the foreign key reference (default is "id").
+    :type column_name: str
+    :returns: The foreign key reference as a string.
+    :rtype: str
+    """
+    return f"{table_key(table_name)}.{column_name}"
+
+
+def table_key(table_name: str) -> str:
+    """Returns the metadata key of a table according to the active schema.
+
+    :param table_name: Name of the table.
+    :type table_name: str
+    :returns: The metadata key of the table.
+    :rtype: str
+    """
+    schema = TABLE_ARGS.get("schema")
+    return f"{schema}.{table_name}" if schema else table_name
 
 class Base(DeclarativeBase):
     """Base class for all database objects.

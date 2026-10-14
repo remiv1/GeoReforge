@@ -4,6 +4,9 @@ Module to map data between `zones.toml` and the database.
 .. class::
     - `ZonesMapper`: class responsible for mapping data between `zones.toml` and the database.
 
+.. constantes::
+    - `FILE_PATH`: Default path to the `zones.toml` file.
+
 .. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
 .. version:: 1.0
 """
@@ -11,6 +14,7 @@ from __future__ import annotations
 
 import tomllib
 import logging
+from os import environ
 
 from typing import Optional, Any
 
@@ -23,17 +27,23 @@ class ZonesMapper:
     :param file_path: Path to the TOML file containing zone definitions.
     :type file_path: str
 
+    .. methods::
+        - `load_file() -> dict[str, Any]`: Loads zones from the TOML file.
+        - `get_mapper(key: Optional[str] = None) -> dict[str, str]`: Retrieves the mapping
+        for the given key.
+        - `get_classes() -> dict[str, str]`: Retrieves the classes for the last accessed key.
+
     .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
     .. version:: 1.0
     """
 
-    def __init__(self, file_path: str = FILE_PATH):
+    def __init__(self, file_path: str | None = None):
         """Initializes the ZonesMapper with the given TOML file path.
         
         :param file_path: Path to the TOML file containing zone definitions.
         :type file_path: str
         """
-        self.file_path = file_path
+        self.file_path = file_path or environ.get("ZONES_CONFIG_PATH", FILE_PATH)
         __loaded_datas = self.load_file()
         __families = __loaded_datas.get("data_family", {})
         self.physical = __families.get("physical", [])

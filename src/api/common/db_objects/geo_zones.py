@@ -10,11 +10,16 @@ Module for the `GeographicZone` class representing geographic zones in the datab
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import String
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from geoalchemy2 import Geometry
 
-from . import Base, TABLE_ARGS
+from . import Base, TABLE_ARGS, table_key
+
+if TYPE_CHECKING:
+    from .geo_forged import GeoForged
 
 class GeographicZone(Base):
     """
@@ -77,4 +82,10 @@ class GeographicZone(Base):
         "GeoForgedItem",
         back_populates="geo_zone",
         cascade="all, delete-orphan",
+    )
+    geo_forged: Mapped[list["GeoForged"]] = relationship(
+        "GeoForged",
+        secondary=lambda: Base.metadata.tables[table_key("geo_forged_item")],
+        back_populates="geo_zones",
+        viewonly=True,
     )

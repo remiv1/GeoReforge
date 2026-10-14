@@ -15,12 +15,14 @@ from geoalchemy2.elements import WKTElement
 from sqlalchemy import select
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import configure_mappers
 
 from api.common.datas import injecter as injecter_module
 from api.common.datas import importer as importer_module
 from api.common.datas.injecter import AgregateZone, DataInjecter
 from api.common.datas.importer import DataImporter
 from api.common.datas.mapper import ZonesMapper
+from api.common.db_objects.geo_forged import GeoForgedItem
 from api.common.db_objects.geo_zones import GeographicZone
 from api.common.repositories import common as common_repo_module
 from api.config import DatabaseConfig, DatabaseSettings
@@ -112,6 +114,14 @@ def aggregate(source_name: str, properties: dict[str, str]) -> AgregateZone:
         shx=BytesIO(parts[".shx"]),
         dbf=BytesIO(parts[".dbf"]),
     )
+
+
+def test_geo_forged_item_relationships_are_configured() -> None:
+    """Vérifie la cible de clé étrangère et la configuration des relations ORM."""
+    configure_mappers()
+
+    foreign_key = next(iter(GeoForgedItem.__table__.c.geo_zone_id.foreign_keys))
+    assert foreign_key.target_fullname == "geo_zones.id"
 
 
 def wait_for_database(database: DatabaseConfig) -> None:
@@ -218,6 +228,14 @@ def test_injecter_selects_each_mapping_and_translates_classes(
     repository = FakeRepository()
     data_injecter = DataInjecter.__new__(DataInjecter)
     data_injecter.repo = repository    # type: ignore
+    monkeypatch.setattr(
+        data_injecter,
+        "_build_aggregates",
+        lambda: [
+            aggregate("ne_10m_admin_0_countries", COUNTRY),
+            aggregate("ne_10m_lakes", LAKE),
+        ],
+    )
 
     data_injecter.inject_geo_zones()
 
@@ -242,10 +260,20 @@ def test_injecter_rejects_unknown_mapping_and_missing_source_class(
     repository = FakeRepository()
     data_injecter = DataInjecter.__new__(DataInjecter)
     data_injecter.repo = repository    # type: ignore
+    monkeypatch.setattr(
+        data_injecter,
+        "_build_aggregates",
+        lambda: [aggregate("ne_10m_unknown", COUNTRY)],
+    )
 
     with pytest.raises(ValueError, match="Aucun mapping trouvé"):
         data_injecter.inject_geo_zones()
 
+    monkeypatch.setattr(
+        data_injecter,
+        "_build_aggregates",
+        lambda: [aggregate("ne_10m_lakes", {"name_en": "Test Lake", "ne_id": "lake-1"})],
+    )
     with pytest.raises(ValueError, match="Classe source absente"):
         data_injecter.inject_geo_zones()
     assert repository.commit_count == 0

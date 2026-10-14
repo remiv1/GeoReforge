@@ -11,11 +11,16 @@ Module for the `GeoForged` class representing forged geographic entities in the 
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import String, Integer, Date, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from geoalchemy2 import Geometry
 
-from . import Base, TABLE_ARGS
+from . import Base, TABLE_ARGS, foreign_key_target, table_key
+
+if TYPE_CHECKING:
+    from .geo_zones import GeographicZone
 
 class GeoForged(Base):
     """
@@ -38,7 +43,7 @@ class GeoForged(Base):
     :param items: List of items associated with the forged geographic entity
     :type items: list[GeoForgedItem]
     :param geo_zones: List of geographic zones associated with the forged geographic entity
-    :type geo_zones: list[GeoZone]
+    :type geo_zones: list[GeographicZone]
 
     .. methods::
         - `to_dict()`: Converts the GeoForged object to a dictionary.
@@ -108,10 +113,11 @@ class GeoForged(Base):
         back_populates="geo_forged",
         cascade="all, delete-orphan",
     )
-    geo_zones = relationship(
-        "GeoZone",
-        back_populates="geo_forged_items",
-        cascade="all, delete-orphan",
+    geo_zones: Mapped[list["GeographicZone"]] = relationship(
+        "GeographicZone",
+        secondary=lambda: Base.metadata.tables[table_key("geo_forged_item")],
+        back_populates="geo_forged",
+        viewonly=True,
     )
 
     def __repr__(self) -> str:
@@ -137,7 +143,7 @@ class GeoForgedItem(Base):
     :param geo_forged: The associated forged geographic entity
     :type geo_forged: GeoForged
     :param geo_zone: The associated geo zone
-    :type geo_zone: GeoZone
+    :type geo_zone: GeographicZone
 
     .. methods::
         - `to_dict()`: Converts the GeoForgedItem object to a dictionary.
@@ -159,14 +165,14 @@ class GeoForgedItem(Base):
     )
     geo_forged_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("geo_forged.id"),
+        ForeignKey(foreign_key_target("geo_forged")),
         nullable=False,
         unique=False,
         comment="ID of the associated forged geographic entity",
     )
     geo_zone_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("geo_zone.id"),
+        ForeignKey(foreign_key_target("geo_zones")),
         nullable=False,
         unique=False,
         comment="ID of the associated geo zone",
@@ -196,7 +202,7 @@ class GeoForgedItem(Base):
         foreign_keys=[geo_forged_id],
     )
     geo_zone = relationship(
-        "GeoZone",
+        "GeographicZone",
         back_populates="geo_forged_items",
         foreign_keys=[geo_zone_id],
     )
