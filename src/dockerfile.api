@@ -1,3 +1,12 @@
+FROM docker.io/node:24-bookworm-slim AS frontend
+WORKDIR /frontend
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts
+COPY scripts/build_front.mjs scripts/build_front.mjs
+COPY doc/img/logo.png doc/img/logo.png
+COPY src/api/web/scss/ src/api/web/scss/
+RUN npm run build
+
 FROM docker.io/python:3.14-slim-bookworm
 
 WORKDIR /app
@@ -8,7 +17,9 @@ RUN apt-get update && \
         sqlite3 \
         libsqlite3-mod-spatialite \
         libsqlite3-dev \
-        gcc && \
+        gcc \
+        g++ \
+        libgdal-dev && \
     rm -rf /var/lib/apt/lists/*
 
 ARG UID=1000
@@ -17,22 +28,23 @@ ARG GID=1000
 RUN groupadd -g ${GID} appuser && \
     useradd -m -u ${UID} -g ${GID} appuser
 
-COPY env.conf /etc/app/env.conf
-COPY config.py /etc/app/config.py
-COPY zones.toml /etc/app/zones.toml
+COPY src/env.conf /etc/app/env.conf
+COPY src/config.py /etc/app/config.py
+COPY src/zones.toml /etc/app/zones.toml
 
 RUN mkdir -p /var/lib/app && \
     touch /var/lib/app/database.db && \
     chown -R appuser:appuser /var/lib/app
 
-COPY requirements.txt .
+COPY src/requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-COPY api/ /app/api/
-COPY auth/ /app/auth/
+COPY src/api/ /app/api/
+COPY src/auth/ /app/auth/
+COPY --from=frontend /frontend/src/api/web/static/ /app/api/web/static/
 
-COPY entrypoint.sh .
+COPY src/entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
 USER appuser

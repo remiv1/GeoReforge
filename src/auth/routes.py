@@ -15,7 +15,16 @@ from __future__ import annotations
 from typing import cast
 import logging
 
-from flask import Blueprint, current_app, jsonify, make_response, request, Response
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    make_response,
+    redirect,
+    request,
+    Response,
+    session,
+)
 from flask_wtf.csrf import generate_csrf
 from authlib.integrations.base_client.errors import OAuthError
 from joserfc.errors import BadSignatureError
@@ -121,7 +130,11 @@ def oidc_callback() -> Response | tuple[Response, int]:
     except (OAuthError, BadSignatureError, ValueError, KeyError):
         LOGGER.exception("OIDC authentication failed")
         return jsonify(error="OIDC authentication failed"), 401
-    response = make_response(jsonify(user=user.to_dict()))
+    response = (
+        make_response(redirect("/"))
+        if session.pop("web_login", False)
+        else make_response(jsonify(user=user.to_dict()))
+    )
     response.set_cookie(
         manager.settings.AUTH_COOKIE_NAME,
         token,

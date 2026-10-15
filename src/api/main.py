@@ -18,6 +18,7 @@ from flask_wtf.csrf import CSRFError, CSRFProtect
 from auth.manager import AuthManager
 from auth.routes import auth_bp
 from .config import DatabaseConfig, DatabaseSettings, FlaskSettings
+from .web.routes import web_bp
 
 def create_app(settings: FlaskSettings, database: DatabaseConfig | None = None) -> Flask:
     """Create and configure the Flask application.
@@ -28,9 +29,6 @@ def create_app(settings: FlaskSettings, database: DatabaseConfig | None = None) 
     :type database: DatabaseConfig | None
     :return: Configured Flask application.
     :rtype: Flask
-
-    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
-    .. version:: 1.0.0
     """
     __app: Flask = Flask(__name__)
     __app.config.from_mapping(settings.model_dump())
@@ -40,6 +38,7 @@ def create_app(settings: FlaskSettings, database: DatabaseConfig | None = None) 
     __app.extensions["georeforge_database"] = database
     __app.extensions["auth_manager"] = AuthManager(__app, database.session, settings)
     __app.register_blueprint(auth_bp)
+    __app.register_blueprint(web_bp)
 
     @__app.errorhandler(CSRFError)
     def handle_csrf_error(_error: CSRFError) -> tuple[Response, int]:

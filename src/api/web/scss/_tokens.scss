@@ -1,0 +1,63 @@
+@font-face {
+    font-family: 'IBM Plex Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('vendor/fonts/ibm-plex-sans-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'IBM Plex Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('vendor/fonts/ibm-plex-sans-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'IBM Plex Sans';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('vendor/fonts/ibm-plex-sans-latin-600-normal.woff2') format('woff2');
+}
+
+@mixin dark {
+    color-scheme: dark;
+    --bg: #171b1a;
+    --surface: #202624;
+    --subtle: #29312e;
+    --text: #edf1ee;
+    --muted: #adb9b2;
+    --line: #3c4842;
+    --accent: #8de0b5;
+    --accent-text: #14261b;
+    --danger: #ffaca7;
+    --map-bg: #353f39;
+    --shadow: 0 18px 60px #0006;
+}
+:root {
+    color-scheme: light;
+    --bg: #f8f9f7;
+    --surface: #fff;
+    --subtle: #f0f3ef;
+    --text: #202b24;
+    --muted: #606f65;
+    --line: #dbe2dc;
+    --accent: #216d4b;
+    --accent-text: #fff;
+    --danger: #ad3430;
+    --map-bg: #e4e9e4;
+    --shadow: 0 18px 60px #1b30251f;
+    --first: #247d71;
+    --second: #416dc5;
+    --removed: #d85c55;
+    --added: #21a16e;
+    --shared: #d8ac43;
+}
+:root[data-theme='dark'] {
+    @include dark;
+}
+@media (prefers-color-scheme: dark) {
+    :root[data-theme='system'] {
+        @include dark;
+    }
+}

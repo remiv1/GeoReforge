@@ -243,10 +243,28 @@ To run the Docker image as a specific user, add the `--user $(id -u):$(id -g)` o
 To use specific user and group IDs for `appuser` in the container, pass the `UID` and `GID` build arguments when building the Docker image:
 
 ```sh
-docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t georeforge:latest .
+docker build -f src/dockerfile.api --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t georeforge:latest .
 ```
 
 You can then run the built image with the `docker run` command described above.
+
+### Web Interface
+
+The image compiles modular SCSS with Sass and bundles HTMX, GSAP, Leaflet, icons and fonts. Build from the repository root. For local development:
+
+```sh
+npm ci
+npm run build
+PYTHONPATH=src .venv/bin/flask --app api.main run --host 127.0.0.1 --port 5000
+```
+
+Initialize the database configured by `DB_PATH` beforehand. The first visit to `/` opens preferences: navigation A (tabs) or C (map workspace), and system, light or dark theme. Choices are stored per identity in the database. Unauthenticated mode shares the local identity's preferences.
+
+Catalogs group versions with the same code. The builder applies ordered union, difference, intersection and symmetric difference (`EXCLUDE`). PostGIS exports are SQL files, not writes to a remote database. YAML exports reference source IDs and require the same sources when imported.
+
+TOML uploads prepare Natural Earth additions in a preview valid for 30 minutes before confirmation. They never delete sources. Deletion requires table selection and confirmation, and sources referenced by a version cannot be deleted. Large imports may require longer Gunicorn/proxy timeouts because downloads are synchronous.
+
+Jinja filters pages and fragments with `data-capability`, and every route checks permissions. Administration currently lists accounts and unlocks login attempts. Run interface tests with `PYTHONPATH=src .venv/bin/python -m pytest tests/test_front.py`.
 
 ### Docker Compose
 

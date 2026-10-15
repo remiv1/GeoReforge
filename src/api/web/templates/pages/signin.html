@@ -1,0 +1,14 @@
+{% from 'macros.html' import icon %}
+<section class="signin" data-page="signin">
+    <h1>Connexion</h1>
+    <form id="signin-form">
+        <label>Identifiant
+            <input name="username" autocomplete="username" required autofocus>
+        </label>
+        <label>Mot de passe
+            <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button class="primary">{{ icon('log-in') }} Se connecter</button>
+        <div id="signin-feedback" role="status"></div>
+    </form>
+</section>

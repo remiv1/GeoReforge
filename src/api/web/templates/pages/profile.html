@@ -1,0 +1,50 @@
+{% from 'macros.html' import icon, csrf with context %}
+<section class="page profile-page" data-page="profile" data-capability="profile:read">
+    <header class="page-heading">
+        <div>
+            <p class="eyebrow">Compte</p>
+            <h1>Mon espace</h1>
+        </div>
+        <span class="badge">{{ user.auth_source }}</span>
+    </header>
+    <div class="profile-identity">
+        <span class="avatar">{{ user.username[:2]|upper }}</span>
+        <div>
+            <h2>{{ user.username }}</h2>
+            <p class="muted">{{ user.groups|join(', ') }}</p>
+        </div>
+    </div>
+    <form hx-post="{{ url_for('web.update_preferences') }}" hx-target="#profile-feedback">
+        {{ csrf() }}
+        <fieldset>
+            <legend>Navigation</legend>
+            <div class="preference-options">
+                <label class="preference-option">
+                    <input type="radio" name="navigation" value="tabs" required{% if prefs.navigation == 'tabs' %} checked{% endif %}>
+                    {{ icon('panel-top') }}
+                    <strong>A · Onglets</strong>
+                </label>
+                <label class="preference-option">
+                    <input type="radio" name="navigation" value="workspace" required{% if prefs.navigation == 'workspace' %} checked{% endif %}>
+                    {{ icon('panels-top-left') }}
+                    <strong>C · Espace cartographique</strong>
+                </label>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend>Apparence</legend>
+            <div class="segmented">
+                {% for value, label, symbol in [('system','Système','monitor'),('light','Clair','sun'),('dark','Sombre','moon')] %}
+                    <label>
+                        <input type="radio" name="theme" value="{{ value }}"{% if prefs.theme == value %} checked{% endif %}>
+                        <span>{{ icon(symbol) }}{{ label }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+        <button class="primary">
+            {{ icon('check') }} Enregistrer
+        </button>
+        <div id="profile-feedback" aria-live="polite"></div>
+    </form>
+</section>

@@ -1,0 +1,44 @@
+{% macro icon(name) -%}
+    <i data-lucide="{{ name }}" aria-hidden="true"></i>
+{%- endmacro %}
+{% macro csrf() -%}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+{% macro link(endpoint, label, symbol, capability, key, active) -%}
+    <a
+        href="{{ url_for(endpoint) }}"
+        hx-get="{{ url_for(endpoint) }}"
+        hx-target="#workspace"
+        hx-push-url="true"
+        data-capability="{{ capability }}"
+        class="nav-link{% if active == key %} active{% endif %}"{% if active == key %}
+        aria-current="page"{% endif %}
+    >
+        {{ icon(symbol) }}<span>{{ label }}</span>
+    </a>
+{%- endmacro %}
+{% macro pager(endpoint, page, has_next, query) -%}
+<nav class="pagination" aria-label="Pagination">
+    {% if page > 1 %}
+        <a
+            href="{{ url_for(endpoint, page=page-1, q=query) }}"
+            hx-get="{{ url_for(endpoint, page=page-1, q=query) }}"
+            hx-target="#workspace"
+            hx-push-url="true"
+        >
+            {{ icon('chevron-left') }} Précédent
+        </a>
+    {% endif %}
+    <span>Page {{ page }}</span>
+    {% if has_next %}
+        <a
+            href="{{ url_for(endpoint, page=page+1, q=query) }}"
+            hx-get="{{ url_for(endpoint, page=page+1, q=query) }}"
+            hx-target="#workspace"
+            hx-push-url="true"
+        >
+            Suivant {{ icon('chevron-right') }}
+        </a>
+    {% endif %}
+</nav>
+{%- endmacro %}

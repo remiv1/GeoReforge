@@ -1,0 +1,56 @@
+{% from 'macros.html' import icon, csrf with context %}
+<section class="page" data-page="administration" data-capability="users:manage">
+    <header class="page-heading">
+        <div>
+            <p class="eyebrow">Administration</p>
+            <h1>Comptes utilisateurs</h1>
+        </div>
+        <span class="badge">ADMIN</span>
+    </header>
+    <div id="admin-feedback" aria-live="polite"></div>
+    <div class="table-scroll">
+        <table>
+            <thead>
+            <thead>
+                <tr>
+                    <th>Compte</th>
+                    <th>Courriel</th>
+                    <th>Groupes</th>
+                    <th>État</th>
+                    <th>Dernière connexion</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                    <tr>
+                        <td>{{ record.username }}</td>
+                        <td>{{ record.email }}</td>
+                        <td>
+                            {% for group in record.groups %}
+                                <span class="badge">{{ group.name }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>{{ 'Actif' if record.enabled else 'Désactivé' }}</td>
+                        <td>{{ record.last_login or 'Jamais' }}</td>
+                        <td>
+                            <form
+                                hx-post="{{ url_for('web.unlock_user', identifier=record.id) }}"
+                                hx-target="#admin-feedback"
+                            >
+                                {{ csrf() }}
+                                <button title="Débloquer les tentatives de connexion">
+                                    {{ icon('lock-keyhole-open') }} Débloquer
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6">Aucun compte enregistré.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>

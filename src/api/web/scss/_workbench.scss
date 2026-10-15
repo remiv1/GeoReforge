@@ -1,0 +1,293 @@
+.map-page {
+    padding: 24px;
+    .page-heading {
+        margin-bottom: 18px;
+    }
+}
+.map-workspace {
+    display: flex;
+    height: calc(100dvh - 174px);
+    min-height: 450px;
+    border-block: 1px solid var(--line);
+}
+.map-library {
+    flex: 0 0 245px;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 16px 0;
+    border-right: 1px solid var(--line);
+    h2 {
+        margin-bottom: 14px;
+    }
+}
+.map-records {
+    overflow: auto;
+    margin-top: 14px;
+}
+.map-record {
+    display: grid;
+    gap: 2px;
+    width: 100%;
+    text-align: left;
+    justify-content: start;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    padding: 12px 8px;
+    span {
+        overflow-wrap: anywhere;
+    }
+    &.selected {
+        background: var(--subtle);
+        box-shadow: inset 3px 0 var(--accent);
+    }
+}
+.map-stage {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+.map-toolbar {
+    display: flex;
+    align-items: end;
+    gap: 14px;
+    padding: 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    label:not(.check-label) {
+        flex: 1;
+        min-width: 0;
+    }
+    .check-label {
+        padding-bottom: 10px;
+    }
+}
+.map-canvases {
+    display: grid;
+    grid-template-columns: 1fr;
+    flex: 1;
+    min-height: 280px;
+    position: relative;
+    &:has(#map-secondary:not([hidden])) {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+.map-canvas {
+    min-height: 280px;
+    height: 100%;
+    min-width: 0;
+    background: var(--map-bg);
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+.leaflet-container {
+    z-index: 1;
+}
+.leaflet-control-attribution {
+    max-width: 100%;
+    font-size: 10px;
+}
+.leaflet-control-layers {
+    color: #222;
+}
+.map-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+}
+.legend {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    span {
+        display: inline-flex;
+        gap: 5px;
+        align-items: center;
+    }
+}
+.swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+    &.first {
+        background: var(--first);
+    }
+    &.second {
+        background: var(--second);
+    }
+    &.removed {
+        background: var(--removed);
+    }
+    &.added {
+        background: var(--added);
+    }
+    &.shared {
+        background: var(--shared);
+    }
+}
+.builder-layout {
+    display: grid;
+    grid-template-columns: minmax(340px, 5fr) minmax(0, 6fr);
+    gap: 26px;
+}
+.builder-controls {
+    min-width: 0;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+.preview-tool {
+    position: sticky;
+    top: 24px;
+    height: min(650px, calc(100dvh - 150px));
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    overflow: hidden;
+    output {
+        padding: 12px;
+        background: var(--surface);
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+    }
+    .map-canvas {
+        flex: 1;
+    }
+}
+.operation-list {
+    padding: 0;
+    margin: 14px 0;
+    list-style: none;
+    counter-reset: operation;
+}
+.operation-row {
+    display: grid;
+    grid-template-columns: 24px minmax(60px, 1fr) 130px auto;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    counter-increment: operation;
+    &::before {
+        content: counter(operation, decimal-leading-zero);
+        color: var(--muted);
+        font-size: 12px;
+    }
+    select {
+        padding: 7px;
+    }
+}
+.operation-source {
+    overflow-wrap: anywhere;
+}
+.row-tools {
+    display: flex;
+    gap: 2px;
+    .icon-button {
+        width: 28px;
+        height: 32px;
+        min-height: 32px;
+        padding: 5px;
+        border: 0;
+        background: transparent;
+    }
+}
+.source-search {
+    margin-top: 32px;
+    h2 {
+        margin-bottom: 12px;
+    }
+    .search {
+        max-width: none;
+    }
+}
+.source-results {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 10px;
+    button {
+        width: 100%;
+        justify-content: space-between;
+        text-align: left;
+        padding: 10px 4px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        border-radius: 0;
+        background: transparent;
+    }
+}
+@media (max-width: 900px) {
+    .map-workspace {
+        height: calc(100dvh - 235px);
+    }
+    .map-library {
+        flex-basis: 195px;
+    }
+    .builder-layout {
+        grid-template-columns: 1fr;
+    }
+    .preview-tool {
+        position: static;
+        height: 400px;
+    }
+    .map-toolbar {
+        flex-wrap: wrap;
+        label:not(.check-label) {
+            min-width: 120px;
+        }
+    }
+}
+@media (max-width: 600px) {
+    .map-page {
+        padding: 20px 12px;
+    }
+    .map-workspace {
+        flex-direction: column;
+        height: auto;
+        min-height: 600px;
+    }
+    .map-library {
+        flex-basis: auto;
+        max-height: 200px;
+        padding: 12px 0;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+    }
+    .map-stage {
+        min-height: 520px;
+    }
+    .map-canvases:has(#map-secondary:not([hidden])) {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        min-height: 600px;
+    }
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .operation-row {
+        grid-template-columns: 22px minmax(60px, 1fr) 118px;
+        .row-tools {
+            grid-column: 2 / -1;
+            justify-content: end;
+        }
+    }
+    .segmented span {
+        padding: 7px 8px;
+        font-size: 12px;
+    }
+}

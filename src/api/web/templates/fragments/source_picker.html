@@ -1,0 +1,18 @@
+{% from 'macros.html' import icon %}
+<div class="source-results" data-capability="zones:edit">
+    {% for source in records %}
+        <button
+            type="button"
+            data-add-source="{{ source.id }}"
+            data-source-name="{{ source.name }}"
+            data-source-code="{{ source.code }}"
+        >
+            <span>
+                {{ source.name }}<small>{{ source.code }} · {{ source.kind }} · #{{ source.id }}</small>
+            </span>
+            {{ icon('plus') }}
+        </button>
+    {% else %}
+        <p class="muted">Aucune source trouvée.</p>
+    {% endfor %}
+</div>

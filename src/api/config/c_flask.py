@@ -21,6 +21,7 @@ from pydantic import Field, model_validator
 
 LOGGER = logging.getLogger(__name__)
 COOKIE_NAME_PATTERN = re.compile(r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$")
+_MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # 2 MB
 
 class Settings(BaseSettings):
     """Settings for the GeoReforge application.
@@ -63,6 +64,8 @@ class Settings(BaseSettings):
     :type SESSION_COOKIE_SAMESITE: str
     :param SESSION_COOKIE_PATH: Path scope for the Flask session cookie.
     :type SESSION_COOKIE_PATH: str
+    :param MAX_CONTENT_LENGTH: The maximum allowed size for incoming request bodies.
+    :type MAX_CONTENT_LENGTH: int
 
     .. methods::
         - `validate_authentication`: Validates the authentication-related settings based
@@ -99,8 +102,13 @@ class Settings(BaseSettings):
     SESSION_COOKIE_SECURE: bool = False
     SESSION_COOKIE_SAMESITE: str = "Lax"
     SESSION_COOKIE_PATH: str = "/"
+    MAX_CONTENT_LENGTH: int = _MAX_CONTENT_LENGTH
 
     def _validate_cookie_names(self) -> None:
+        """Validate the names of the authentication and session cookies.
+
+        :raises ValueError: If the cookie names are invalid or if they are the same.
+        """
         for setting_name, cookie_name in (
             ("AUTH_COOKIE_NAME", self.AUTH_COOKIE_NAME),
             ("SESSION_COOKIE_NAME", self.SESSION_COOKIE_NAME),
@@ -113,6 +121,10 @@ class Settings(BaseSettings):
             )
 
     def _validate_flask_cookie_settings(self) -> None:
+        """Validate the Flask session cookie settings.
+
+        :raises ValueError: If any of the Flask session cookie settings are invalid.
+        """
         if not self.SESSION_COOKIE_HTTPONLY:
             raise ValueError("SESSION_COOKIE_HTTPONLY doit rester activé")
         if self.SESSION_COOKIE_SAMESITE != "Lax":

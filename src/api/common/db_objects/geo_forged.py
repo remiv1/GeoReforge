@@ -1,16 +1,17 @@
-"""
-Module for the `GeoForged` class representing forged geographic entities in the database.
+"""Module for the `GeoForged` class representing forged geographic entities in the database.
 
 .. module: src.api.common.db_objects.geo_forged
 
-.. class:: GeoForged: Represents a forged geographic entity in the database.
-.. class:: GeoForgedItem: Represents an item associated with a forged geographic entity.
+.. classes::
+    - `GeoForged`: Represents a forged geographic entity in the database.
+    - `GeoForgedItem`: Represents an item associated with a forged geographic entity.
 
 .. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
 .. version:: 1.0
 """
 from __future__ import annotations
 
+from datetime import date
 from typing import TYPE_CHECKING
 
 from sqlalchemy import String, Integer, Date, Enum, ForeignKey
@@ -23,7 +24,8 @@ if TYPE_CHECKING:
     from .geo_zones import GeographicZone
 
 class GeoForged(Base):
-    """
+    """Represents a forged geographic entity in the database.
+
     :param id: ID of the forged geographic entity
     :type id: int
     :param code: Code of the forged geographic entity
@@ -87,7 +89,7 @@ class GeoForged(Base):
         unique=False,
         comment="Version of the forged geographic entity",
     )
-    from_date: Mapped[Date] = mapped_column(
+    from_date: Mapped[date] = mapped_column(
         Date,
         nullable=False,
         unique=False,
@@ -129,8 +131,7 @@ class GeoForged(Base):
 
 
 class GeoForgedItem(Base):
-    """
-    Represents an item of a forged geographic entity in the database.
+    """Represents an item of a forged geographic entity in the database.
 
     :param geo_forged_id: ID of the associated forged geographic entity
     :type geo_forged_id: int

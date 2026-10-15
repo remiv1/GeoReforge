@@ -1,0 +1,18 @@
+{
+  "name": "georeforge-interface",
+  "private": true,
+  "scripts": {
+    "build": "sass --no-source-map --style=compressed src/api/web/scss/main.scss src/api/web/static/app.css && node scripts/build_front.mjs",
+    "watch": "sass --watch src/api/web/scss/main.scss:src/api/web/static/app.css"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-sans": "^5.2.0",
+    "gsap": "^3.13.0",
+    "htmx.org": "^2.0.8",
+    "leaflet": "^1.9.4",
+    "lucide": "^0.468.0"
+  },
+  "devDependencies": {
+    "sass": "^1.93.0"
+  }
+}

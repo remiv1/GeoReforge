@@ -1,0 +1,91 @@
+{% from 'macros.html' import icon, csrf, pager with context %}
+<section class="page" data-page="sources" data-capability="sources:manage">
+    <header class="page-heading">
+        <div>
+            <p class="eyebrow">Référentiel</p>
+            <h1>Zones sources</h1>
+        </div>
+        <span class="badge">ADMIN</span>
+    </header>
+    <form
+        class="import-strip"
+        hx-post="{{ url_for('web.source_preview') }}"
+        hx-encoding="multipart/form-data"
+        hx-target="#source-confirm"
+    >
+        {{ csrf() }}
+        <label class="file-label">
+            Configuration TOML
+            <input type="file" name="configuration" accept=".toml" required>
+        </label>
+        <button>{{ icon('upload') }} Préparer les ajouts</button>
+        <span class="request-indicator" role="status">Chargement…</span>
+    </form>
+    <div id="source-confirm" aria-live="polite"></div>
+    <form
+        class="search"
+        hx-get="{{ url_for('web.sources') }}"
+        hx-target="#workspace"
+        hx-push-url="true"
+        role="search"
+    >
+        {{ icon('search') }}
+        <input
+            type="search"
+            name="q"
+            value="{{ query }}"
+            placeholder="Nom ou code"
+            aria-label="Rechercher une source"
+        >
+        <button class="icon-button" title="Rechercher" aria-label="Rechercher">
+            {{ icon('arrow-right') }}
+        </button>
+    </form>
+    {% if records %}
+        <form
+            hx-post="{{ url_for('web.delete_preview') }}"
+            hx-target="#source-confirm"
+        >
+            {{ csrf() }}
+            <div class="selection-toolbar">
+                <label class="check-label">
+                    <input type="checkbox" data-select-all>
+                    Tout sélectionner sur cette page
+                </label>
+                <button class="danger" type="submit">
+                    {{ icon('trash-2') }} Supprimer la sélection
+                </button>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><span class="sr-only">Sélection</span></th>
+                            <th>Nom</th>
+                            <th>Code</th>
+                            <th>Classe</th>
+                            <th>Identifiant</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for source in records %}
+                            <tr>
+                                <td><input type="checkbox" name="source_id" value="{{ source.id }}" aria-label="Sélectionner {{ source.name }}"></td>
+                                <td>{{ source.name }}</td>
+                                <td><code>{{ source.code }}</code></td>
+                                <td>{{ source.kind }}</td>
+                                <td>{{ source.id }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+        {{ pager('web.sources', page, has_next, query) }}
+    {% else %}
+        <div class="empty">
+            {{ icon('database') }}
+            <h2>Aucune source</h2>
+        </div>
+    {% endif %}
+</section>

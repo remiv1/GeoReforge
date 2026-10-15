@@ -1,5 +1,4 @@
-"""
-Database objects for users.
+"""Database objects for users.
 
 .. classes::
     - `User`: Represents a user in the database.
@@ -8,6 +7,7 @@ Database objects for users.
     - `UserLoginState`: Represents a user's login attempt state in the database.
     - `AuthRuntimeState`: Represents the authentication runtime state of a user in the database.
     - `UserIdentity`: Represents the identity of a user in the database.
+    - `UserPreferences`: Represents the preferences of a user in the database.
 
 .. constant::
     - `_USER_ID`: Description of the unique identifier of the user in the database.
@@ -38,6 +38,18 @@ class User(Base):
     :type email: str
     :param hash_password: The hashed password of the user.
     :type hash_password: str
+    :param enabled: Indicates whether the user is enabled.
+    :type enabled: bool
+    :param created_at: Timestamp indicating when the user was created.
+    :type created_at: datetime
+    :param last_login: Timestamp indicating the last login of the user.
+    :type last_login: datetime
+    :param groups: List of groups the user belongs to.
+    :type groups: list[Group]
+    :param sessions: List of user sessions.
+    :type sessions: list[UserSession]
+    :param preferences: User preferences.
+    :type preferences: UserPreferences | None
 
     .. methods::
         - **`to_dict(without_secrets: bool = True)`** :
@@ -103,6 +115,10 @@ class User(Base):
         "UserSession",
         back_populates="user",
     )
+    preferences: Mapped["UserPreferences | None"] = relationship(
+        cascade="all, delete-orphan",
+        single_parent=True,
+    )
 
     def to_dict(self, without_secrets: bool = True) -> dict[str, Any]:
         """Converts the User object to a dictionary.
@@ -117,19 +133,18 @@ class User(Base):
             hashed password is included in the dictionary representation. The default value
             is `True`, meaning sensitive information is excluded by default.
 
-            .. example::
+            :example:
+            ```python
+            user = User.from_dict({
+                "id": 1,
+                "username": "john_doe",
+                "email": "john@example.com",
+                "hash_password": "hashed_password"
+            })
+            print(user.to_dict())
 
-                ```python
-                user = User.from_dict({
-                    "id": 1,
-                    "username": "john_doe",
-                    "email": "john@example.com",
-                    "hash_password": "hashed_password"
-                })
-                print(user.to_dict())
-
-                >>> {'id': 1, 'username': 'john_doe', 'email': 'john@example.com'}
-                ```
+            >>> {'id': 1, 'username': 'john_doe', 'email': 'john@example.com'}
+            ```
         """
         user_dict = {
             "id": self.id,
@@ -156,8 +171,7 @@ class User(Base):
             hashed password is expected in the input dictionary. The default value is `True`,
             meaning sensitive information is not expected by default.
 
-            .. example::
-
+            :example:
                 ```python
                 data = {
                     "id": 1,
@@ -179,6 +193,52 @@ class User(Base):
             email=data.get("email"),
             hash_password=data.get("hash_password") if not without_secrets else None,
         )
+
+
+class UserPreferences(Base):
+    """Persistent user interface preferences, including for the local identity.
+
+    :param identity_key: Unique key identifying the local identity.
+    :type identity_key: str
+    :param user_id: Unique identifier of the user.
+    :type user_id: int | None
+    :param navigation: Preferred navigation style.
+    :type navigation: str | None
+    :param theme: Preferred theme for the user interface.
+    :type theme: str
+
+    .. table:: `user_preferences`
+
+    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
+    .. version:: 1.0.0
+    """
+
+    __tablename__ = "user_preferences"
+    __table_args__ = TABLE_ARGS
+
+    identity_key: Mapped[str] = mapped_column(
+        String(100),
+        primary_key=True,
+        comment="Unique key identifying the local identity",
+    )
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey(
+            foreign_key_target("users"),
+            ondelete="CASCADE",
+        ),
+        unique=True,
+        comment=_USER_ID,
+    )
+    navigation: Mapped[str | None] = mapped_column(
+        String(20),
+        comment="Preferred navigation style",
+    )
+    theme: Mapped[str] = mapped_column(
+        String(10),
+        default="system",
+        nullable=False,
+        comment="Preferred theme for the user interface",
+    )
 
 
 class Group(Base):
@@ -400,7 +460,7 @@ class UserIdentity(Base):
         Integer,
         ForeignKey(foreign_key_target("users")),
         primary_key=True,
-        comment="Unique identifier of the user",
+        comment=_USER_ID,
     )
     auth_source: Mapped[str] = mapped_column(
         String(16),

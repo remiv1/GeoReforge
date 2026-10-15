@@ -1,0 +1,113 @@
+{% from 'macros.html' import icon, csrf, link with context %}
+<!doctype html>
+<html lang="fr" data-theme="{{ prefs.theme if prefs is defined else 'system' }}">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="htmx-config" content='{"historyCacheSize":0,"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false}'>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>GeoReforge</title>
+    <link rel="icon" href="{{ url_for('web.static', filename='vendor/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('web.static', filename='vendor/leaflet/leaflet.css') }}">
+    <link rel="stylesheet" href="{{ url_for('web.static', filename='app.css') }}">
+    <script defer src="{{ url_for('web.static', filename='vendor/htmx.min.js') }}"></script>
+    <script defer src="{{ url_for('web.static', filename='vendor/gsap.min.js') }}"></script>
+    <script defer src="{{ url_for('web.static', filename='vendor/leaflet/leaflet.js') }}"></script>
+    <script defer src="{{ url_for('web.static', filename='vendor/lucide.min.js') }}"></script>
+    <script defer src="{{ url_for('web.static', filename='app.js') }}"></script>
+</head>
+<body data-navigation="{{ prefs.navigation or '' if prefs is defined else '' }}" hx-history="false">
+    <header class="app-header">
+        <a class="brand" href="{{ url_for('web.index') }}">
+            <img
+                src="{{ url_for('web.static', filename='vendor/logo.png') }}"
+                alt=""
+                width="28"
+                height="28"
+            >
+            GeoReforge
+        </a>
+        {% if user %}
+        <nav class="tabs" aria-label="Navigation principale">
+            {% if can('catalogs:read') %}
+                {{ link('web.catalogs', 'Catalogues', 'library', 'catalogs:read', 'catalogs', active) }}
+            {% endif %}
+            {% if can('maps:read') %}
+                <details class="map-menu" data-capability="maps:read">
+                    <summary class="nav-link{% if active == 'maps' %} active{% endif %}">
+                        {{ icon('map') }}
+                        <span>Carte</span>
+                        {{ icon('chevron-down') }}
+                    </summary>
+                    <div class="dropdown">
+                        <form
+                            action="{{ url_for('web.maps') }}"
+                            hx-get="{{ url_for('web.maps') }}"
+                            hx-target="#workspace"
+                            hx-push-url="true">
+                            <label>
+                                Carte construite
+                                <select name="zone" id="nav-map-select">
+                                    <option value="">Toutes les versions</option>
+                                </select>
+                            </label>
+                            <button type="submit">
+                                {{ icon('map') }} Ouvrir
+                            </button>
+                        </form>
+                    </div>
+                </details>
+            {% endif %}
+            {% if can('zones:edit') %}{{ link('web.builder', 'Constructeur', 'combine', 'zones:edit', 'builder', active) }}{% endif %}
+            {% if can('sources:manage') %}{{ link('web.sources', 'Sources', 'database', 'sources:manage', 'sources', active) }}{% endif %}
+        </nav>
+        <div class="header-tools">
+            <form
+                hx-post="{{ url_for('web.update_preferences') }}"
+                hx-swap="none"
+                class="theme-form"
+                data-capability="profile:read">
+                {{ csrf() }}
+                <button
+                    class="icon-button"
+                    type="submit"
+                    role="switch"
+                    aria-checked="false"
+                    aria-label="Thème sombre"
+                    title="Changer le thème"
+                    data-theme-toggle>
+                    {{ icon('sun-moon') }}
+                </button>
+                <input type="hidden" name="theme" value="dark">
+            </form>
+            <details class="profile-menu">
+                <summary
+                    class="avatar"
+                    title="Profil de {{ user.username }}"
+                    aria-label="Profil de {{ user.username }}">
+                    {{ user.username[:2]|upper }}
+                </summary>
+                <div class="dropdown">
+                    <strong>{{ user.username }}</strong>
+                    {% if can('profile:read') %}
+                        {{ link('web.profile', 'Mon espace', 'user-round', 'profile:read', 'profile', active) }}
+                    {% endif %}
+                    {% if can('users:manage') %}
+                        {{ link('web.administration', 'Administration', 'shield', 'users:manage', 'administration', active) }}
+                    {% endif %}
+                    {% if user.auth_source != 'none' %}
+                        <button type="button" data-logout>
+                            {{ icon('log-out') }} Déconnexion
+                    </button>
+                    {% endif %}
+                </div>
+            </details>
+        </div>
+    {% endif %}
+    </header>
+    <main id="workspace" tabindex="-1">
+        {% include content_template %}
+    </main>
+    <div id="global-feedback" class="global-feedback" role="status" aria-live="polite"></div>
+    <div id="panel-root"></div>
+</body>
+</html>

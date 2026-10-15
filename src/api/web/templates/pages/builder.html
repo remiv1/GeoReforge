@@ -1,0 +1,188 @@
+{% from 'macros.html' import icon, csrf with context %}
+<section class="page builder-page" data-page="builder" data-capability="zones:edit">
+    <header class="page-heading">
+        <div>
+            <p class="eyebrow">
+                {{ record.code if record else 'Nouvelle zone' }}
+            </p>
+            <h1>
+                {{ 'Nouvelle version' if record else 'Constructeur' }}
+            </h1>
+        </div>
+    </header>
+    <div class="builder-layout">
+        <div class="builder-controls">
+            <form
+                hx-post="{{ url_for('web.builder_save') }}"
+                hx-target="#builder-feedback"
+                id="builder-form">
+                {{ csrf() }}
+                <div class="form-grid">
+                    <label>
+                        Code
+                        <input
+                            name="code"
+                            maxlength="50"
+                            required
+                            value="{{ record.code if record else '' }}"
+                            {% if record %} readonly{% endif %}
+                        >
+                    </label>
+                    <label>
+                        Nom
+                        <input
+                            name="name"
+                            maxlength="100"
+                            required
+                            value="{{ record.name if record else '' }}"
+                        >
+                    </label>
+                    <label>
+                        Date de début
+                        <input
+                            type="date"
+                            name="from_date"
+                            required
+                            value="{{ today }}"
+                        >
+                    </label>
+                    <label>
+                        Description
+                        <input
+                            name="description"
+                            maxlength="255"
+                            value="{{ record.description or '' if record else '' }}"
+                        >
+                    </label>
+                </div>
+                <h2>
+                    Opérations
+                </h2>
+                <ol
+                    id="operation-list"
+                    class="operation-list">
+                    {% if record %}
+                        {% for item in record.items|sort(attribute='rank') %}
+                            <li class="operation-row">
+                                <input
+                                    type="hidden"
+                                    name="source_id"
+                                    value="{{ item.geo_zone_id }}"
+                                >
+                                <span class="operation-source">
+                                    {{ item.geo_zone.name }}<small>{{ item.geo_zone.code }}</small>
+                                </span>
+                                <select
+                                    name="operation"
+                                    aria-label="Opération"
+                                >
+                                    {% for key, label in operations.items() %}
+                                        <option value="{{ key }}"{% if item.operation == key %} selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="row-tools">
+                                    <button
+                                        type="button"
+                                        class="icon-button"
+                                        data-move="-1"
+                                        aria-label="Monter"
+                                        title="Monter">
+                                        {{ icon('arrow-up') }}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="icon-button"
+                                        data-move="1"
+                                        aria-label="Descendre"
+                                        title="Descendre">
+                                        {{ icon('arrow-down') }}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="icon-button"
+                                        data-remove-step
+                                        aria-label="Retirer l'opération"
+                                        title="Retirer">
+                                        {{ icon('x') }}
+                                    </button>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ol>
+            </form>
+            <div id="builder-feedback" aria-live="polite"></div>
+            <div class="source-search">
+                <h2>
+                    Sources
+                </h2>
+                <label class="search">
+                    {{ icon('search') }}
+                    <input
+                        type="search"
+                        name="q"
+                        placeholder="Nom ou code de la source"
+                        aria-label="Rechercher une source"
+                        hx-get="{{ url_for('web.builder_search') }}"
+                        hx-target="#source-picker"
+                        hx-trigger="input changed delay:300ms, load"
+                    >
+                </label>
+                <div id="source-picker"></div>
+            </div>
+        </div>
+        <div class="preview-tool">
+            <div
+                id="builder-map"
+                class="map-canvas"
+                aria-label="Aperçu de la construction"
+            >
+            </div>
+            <output id="preview-status" aria-live="polite">
+                Aperçu non calculé
+            </output>
+        </div>
+    </div>
+    <template id="operation-template">
+        <li class="operation-row">
+            <input type="hidden" name="source_id">
+            <span class="operation-source"></span>
+            <select name="operation" aria-label="Opération">
+                {% for key, label in operations.items() %}
+                    <option value="{{ key }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+            <div class="row-tools">
+                <button
+                    type="button"
+                    class="icon-button"
+                    data-move="-1"
+                    aria-label="Monter"
+                    title="Monter"
+                >
+                    {{ icon('arrow-up') }}
+                </button>
+                <button
+                    type="button"
+                    class="icon-button"
+                    data-move="1"
+                    aria-label="Descendre"
+                    title="Descendre"
+                >
+                    {{ icon('arrow-down') }}
+                </button>
+                <button
+                    type="button"
+                    class="icon-button"
+                    data-remove-step
+                    aria-label="Retirer l'opération"
+                    title="Retirer"
+                >
+                    {{ icon('x') }}
+                </button>
+            </div>
+        </li>
+    </template>
+</section>

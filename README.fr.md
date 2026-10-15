@@ -243,10 +243,28 @@ Vous avez toutefois possibilité d'utiliser un utilisateur spécifique pour exé
 Si vous souhaitez utiliser un ID utilisateur et un ID de groupe spécifiques pour l'utilisateur `appuser` dans le conteneur, vous pouvez passer les arguments `UID` et `GID` lors de la construction de l'image Docker :
 
 ```sh
-docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t georeforge:latest .
+docker build -f src/dockerfile.api --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t georeforge:latest .
 ```
 
 Vous pouvez ensuite exécuter l'image construite avec la commande `docker run` comme décrit dans la section RUN.
+
+### Interface Web
+
+L'image compile automatiquement les modules SCSS avec Sass et embarque HTMX, GSAP, Leaflet, les icônes et les polices. Le contexte de construction est la racine du dépôt. En développement local :
+
+```sh
+npm ci
+npm run build
+PYTHONPATH=src .venv/bin/flask --app api.main run --host 127.0.0.1 --port 5000
+```
+
+La base indiquée par `DB_PATH` doit déjà être initialisée. Le premier accès à `/` ouvre les préférences : navigation A (onglets) ou C (espace cartographique), et thème système, clair ou sombre. Ces choix sont conservés en base par identité. Le mode sans authentification partage les préférences de l'identité locale.
+
+Les catalogues regroupent les versions d'un même code. Le constructeur applique les opérations dans l'ordre : union, différence, intersection, différence symétrique (`EXCLUDE`). L'export PostGIS fournit un fichier SQL, sans connexion à une base distante. Les exports YAML référencent les identifiants des sources : leur réimport nécessite ces mêmes sources.
+
+L'import TOML prépare les ajouts Natural Earth dans un aperçu valable 30 minutes avant validation. Il ne supprime aucune source. La suppression utilise exclusivement la sélection du tableau et une confirmation ; une source utilisée par une version reste protégée. Un import volumineux peut nécessiter d'augmenter le délai Gunicorn/proxy, les téléchargements étant synchrones.
+
+Les pages et fragments sont filtrés par Jinja avec `data-capability`, et chaque route vérifie les droits. L'administration permet de consulter les comptes et de débloquer les connexions. Les tests d'interface s'exécutent avec `PYTHONPATH=src .venv/bin/python -m pytest tests/test_front.py`.
 
 ### Intégration dans un compose
 

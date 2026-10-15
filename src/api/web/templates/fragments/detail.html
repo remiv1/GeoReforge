@@ -1,0 +1,88 @@
+{% from 'macros.html' import icon %}
+<div class="panel-backdrop" data-close-panel></div>
+<aside
+    class="side-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="detail-title"
+    data-capability="catalogs:read"
+>
+    <header>
+        <span class="eyebrow">
+            {{ record.code }} · v{{ record.version }}
+        </span>
+        <button
+            class="icon-button"
+            data-close-panel
+            aria-label="Fermer"
+            title="Fermer"
+        >
+            {{ icon('x') }}
+        </button>
+    </header>
+    <h2 id="detail-title">
+        {{ record.name }}
+    </h2>
+    <p>
+        {{ record.description or '' }}
+    </p>
+    <dl>
+        <dt>
+            Auteur
+        </dt>
+        <dd>{{ record.author }}</dd>
+        <dt>
+            Date de début
+        </dt>
+        <dd>{{ record.from_date }}</dd>
+    </dl>
+    <h3>
+        Versions
+    </h3>
+    <div class="version-list">
+        {% for version in versions %}
+            <a
+                href="{{ url_for('web.maps', zone=version.id) }}"
+                hx-get="{{ url_for('web.maps', zone=version.id) }}"
+                hx-target="#workspace"
+                hx-push-url="true"
+            >
+                <span class="badge">
+                    v{{ version.version }}
+                </span>
+                {{ version.from_date }}{{ icon('arrow-up-right') }}
+            </a>
+        {% endfor %}
+    </div>
+    {% if can('zones:edit') %}
+        <a
+            class="button primary"
+            href="{{ url_for('web.builder', **{'from': record.id}) }}"
+            hx-get="{{ url_for('web.builder', **{'from': record.id}) }}"
+            hx-target="#workspace"
+            hx-push-url="true"
+            data-capability="zones:edit"
+        >
+            {{ icon('git-branch') }} Nouvelle version
+        </a>
+    {% endif %}
+    <h3>
+        Construction
+    </h3>
+    <ol class="recipe">
+        {% for item in record.items|sort(attribute='rank') %}
+            <li>
+                <span class="operation-label">{{ operations[item.operation] }}</span>
+                {{ item.geo_zone.name }}
+            </li>
+        {% endfor %}
+    </ol>
+    <h3>
+        Exporter
+    </h3>
+    <div class="export-list">
+        {% for format, label in [('yaml','YAML'),('geojson','GeoJSON'),('gpkg','GeoPackage'),('shp','Shapefile'),('postgis','SQL PostGIS')] %}
+            <a class="button" href="{{ url_for('web.download', identifier=record.id, format_name=format) }}">{{ icon('download') }} {{ label }}</a>
+        {% endfor %}
+    </div>
+</aside>

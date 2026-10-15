@@ -3,3 +3,7 @@ __pycache__/
 *.py[cod]
 tmp/*
 !tmp/.gitkeep
+node_modules/
+.pytest_cache/
+src/api/web/static/app.css
+src/api/web/static/vendor/

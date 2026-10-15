@@ -1,0 +1,101 @@
+{% from 'macros.html' import icon %}
+<section
+    class="map-page"
+    data-page="maps"
+    data-capability="maps:read"
+    data-selected="{{ selected or '' }}"
+>
+    <header class="page-heading">
+        <div>
+            <p class="eyebrow">
+                Exploration
+            </p>
+            <h1>
+                Cartographie
+            </h1>
+        </div>
+        <div class="segmented" aria-label="Affichage des cartes">
+            <label>
+                <input type="radio" name="map-mode" value="overlay" checked>
+                <span>{{ icon('layers') }} Superposition</span>
+            </label>
+            <label>
+                <input type="radio" name="map-mode" value="split">
+                <span>{{ icon('columns-2') }} Côte à côte</span>
+            </label>
+        </div>
+    </header>
+    <div class="map-workspace">
+        {% if prefs.navigation == 'workspace' %}
+        <aside class="map-library">
+            <h2>Zones construites</h2>
+            <input type="search" data-filter-maps placeholder="Nom ou code" aria-label="Filtrer les cartes">
+            <div class="map-records">
+                {% for record in records %}
+                    <button data-map-id="{{ record.id }}" class="map-record">
+                        <span>{{ record.name }}</span>
+                        <small>{{ record.code }} · v{{ record.version }}</small>
+                    </button>
+                {% endfor %}
+            </div>
+        </aside>
+        {% endif %}
+        <div class="map-stage">
+            <div class="map-toolbar">
+                <label>
+                    Carte A
+                    <select id="map-first">
+                        <option value="">Sélectionner une zone</option>
+                        {% for record in records %}
+                            <option
+                                value="{{ record.id }}"{% if selected == record.id %} selected{% endif %}
+                            >
+                                {{ record.name }} · {{ record.code }} · v{{ record.version }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    Carte B
+                    <select id="map-second">
+                        <option value="">Aucune comparaison</option>
+                        {% for record in records %}
+                            <option value="{{ record.id }}">
+                                {{ record.name }} · {{ record.code }} · v{{ record.version }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="check-label">
+                    <input id="map-diff" type="checkbox">
+                    Différences
+                </label>
+                <button
+                    class="icon-button"
+                    id="map-details"
+                    title="Détails de la carte A"
+                    aria-label="Détails de la carte A"
+                    disabled
+                >
+                    {{ icon('panel-right-open') }}
+                </button>
+            </div>
+            <div class="map-canvases">
+                <div id="map-primary" class="map-canvas" aria-label="Carte A"></div>
+                <div id="map-secondary" class="map-canvas" aria-label="Carte B" hidden></div>
+            </div>
+            <footer class="map-footer">
+                <div class="legend">
+                    <span><i class="swatch first"></i>Carte A</span>
+                    <span><i class="swatch second"></i>Carte B</span>
+                    <span class="diff-key" hidden><i class="swatch removed"></i>Retiré</span>
+                    <span class="diff-key" hidden><i class="swatch added"></i>Ajouté</span>
+                    <span class="diff-key" hidden><i class="swatch shared"></i>Commun</span>
+                </div>
+                <output id="map-status" aria-live="polite">
+                    {{ 'Choisir une zone' if records else 'Aucune zone construite' }}
+                </output>
+            </footer>
+        </div>
+    </div>
+</section>

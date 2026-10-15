@@ -1,0 +1,22 @@
+{% from 'macros.html' import icon, csrf with context %}
+<section class="confirmation destructive" data-capability="sources:manage">
+    <h2>Confirmer la suppression</h2>
+    <ul>
+        {% for source in records %}
+            <li>{{ source.name }} · {{ source.code }} · #{{ source.id }}{% if source.id in used %} <strong>Utilisée par une version : suppression bloquée</strong>{% endif %}</li>
+        {% endfor %}
+    </ul>
+    <form hx-post="{{ url_for('web.delete_sources') }}" hx-target="#source-confirm">
+        {{ csrf() }}
+        {% for source in records %}
+            <input type="hidden" name="source_id" value="{{ source.id }}">
+        {% endfor %}
+        <input type="hidden" name="confirmed" value="yes">
+        <div class="form-actions">
+            <button type="button" data-cancel-confirm>{{ icon('x') }} Annuler</button>
+            <button class="danger"{% if used %} disabled{% endif %}>
+                {{ icon('trash-2') }} Supprimer définitivement {{ records|length }} source(s)
+            </button>
+        </div>
+    </form>
+</section>

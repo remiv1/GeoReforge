@@ -42,6 +42,7 @@ AUTH_TABLE_NAMES = (
     "user_login_states",
     "user_identities",
     "auth_runtime_state",
+    "user_preferences",
 )
 TEST_SECRET = "test-only-secret-key-that-is-not-used-in-production"
 TEST_PASSWORD = "test-only-password"

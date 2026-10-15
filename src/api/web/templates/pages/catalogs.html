@@ -1,0 +1,126 @@
+{% from 'macros.html' import icon, csrf, pager with context %}
+<section class="page" data-page="catalogs" data-capability="catalogs:read">
+    <header class="page-heading">
+        <div>
+            <p class="eyebrow">
+                Bibliothèque
+            </p>
+            <h1>
+                Catalogues de zones
+            </h1>
+        </div>
+        {% if can('zones:edit') %}
+        <a
+            class="button primary"
+            href="{{ url_for('web.builder') }}"
+            hx-get="{{ url_for('web.builder') }}"
+            hx-target="#workspace"
+            hx-push-url="true"
+            data-capability="zones:edit">
+            {{ icon('plus') }} Nouvelle zone
+        </a>
+        {% endif %}
+    </header>
+    <div class="toolbar">
+        <form
+            class="search"
+            hx-get="{{ url_for('web.catalogs') }}"
+            hx-target="#workspace"
+            hx-push-url="true"
+            role="search">
+            {{ icon('search') }}
+            <input
+                type="search"
+                name="q"
+                value="{{ query }}"
+                placeholder="Nom ou code"
+                aria-label="Rechercher un catalogue">
+                <button
+                    class="icon-button"
+                    title="Rechercher"
+                    aria-label="Rechercher">
+                    {{ icon('arrow-right') }}
+                </button>
+        </form>
+        {% if can('zones:edit') %}
+        <form class="file-form"
+            hx-post="{{ url_for('web.import_yaml') }}"
+            hx-encoding="multipart/form-data"
+            hx-target="#catalog-feedback"
+            data-capability="zones:edit">
+            {{ csrf() }}
+            <label class="file-label">Définition YAML
+                <input type="file" name="definition" accept=".yaml,.yml" required>
+            </label>
+            <button>{{ icon('upload') }} Importer</button>
+        </form>
+        {% endif %}
+    </div>
+    <div id="catalog-feedback" aria-live="polite"></div>
+    {% if records %}
+    <div class="table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        Catalogue
+                    </th>
+                    <th>
+                        Code
+                    </th>
+                    <th>Dernière version</th>
+                    <th>Depuis le</th>
+                    <th>Auteur</th>
+                    <th><span class="sr-only">Actions</span></th>
+                </tr>
+            </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td>
+                    <a
+                        class="record-name"
+                        href="{{ url_for('web.maps', zone=record.id) }}"
+                        hx-get="{{ url_for('web.maps', zone=record.id) }}"
+                        hx-target="#workspace"
+                        hx-push-url="true">
+                        {{ icon('shapes') }}{{ record.name }}
+                    </a>
+                </td>
+                <td>
+                    <code>{{ record.code }}</code>
+                </td>
+                <td>
+                    <span class="badge">v{{ record.version }}</span>
+                </td>
+                <td>
+                    {{ record.from_date }}
+                </td>
+                <td>
+                    {{ record.author }}
+                </td>
+                <td>
+                    <button
+                        class="icon-button"
+                        hx-get="{{ url_for('web.catalog_detail', identifier=record.id) }}"
+                        hx-target="#panel-root"
+                        title="Détails et versions"
+                        aria-label="Détails de {{ record.name }}">
+                        {{ icon('panel-right-open') }}
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+        {{ pager('web.catalogs', page, has_next, query) }}
+    {% else %}
+    <div class="empty">
+        {{ icon('library') }}
+        <h2>
+            {{ 'Aucun résultat' if query else 'Aucun catalogue' }}
+        </h2>
+    </div>
+    {% endif %}
+</section>

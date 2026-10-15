@@ -36,6 +36,7 @@ from api.common.db_objects.users import (
     UserGroup,
     UserLoginState,
     UserSession,
+    UserPreferences,
 )
 from auth.models import User as UniformUser
 
@@ -637,6 +638,10 @@ class UserService:
         session.execute(delete(UserLoginState))
         session.execute(delete(UserGroup))
         session.execute(delete(UserIdentity))
+        session.execute(
+            delete(UserPreferences)
+            .where(UserPreferences.user_id.is_not(None))
+        )
         session.execute(delete(User))
         session.execute(delete(Group))
         state.auth_mode = mode
@@ -647,7 +652,10 @@ class UserService:
 
     @_rollback_on_error
     def ensure_identity_records(self) -> None:
-        """Persist provenance for accounts created before identity tracking."""
+        """Persist provenance for accounts created before identity tracking.
+
+        :raises SQLAlchemyError: If there is an error during database operations.
+        """
         session = self.db_session()
         records = session.scalars(select(User)).all()
         for record in records:
@@ -684,7 +692,18 @@ class UserService:
 
     @staticmethod
     def _ensure_login_state(session: Session, user_id: int) -> UserLoginState:
-        """Return the user's persisted login state, creating it when absent."""
+        """Return the user's persisted login state, creating it when absent.
+        
+        :param session: The SQLAlchemy session to use for database operations.
+        :type session: Session
+        :param user_id: The ID of the user whose login state is to be retrieved.
+        :type user_id: int
+
+        :return: The user's persisted login state.
+        :rtype: UserLoginState
+
+        :raises SQLAlchemyError: If there is an error during database operations.
+        """
         state = session.get(UserLoginState, user_id)
         if state is None:
             state = UserLoginState(user_id=user_id)
@@ -694,7 +713,13 @@ class UserService:
 
     @staticmethod
     def _check_dummy_password(password: str | None) -> None:
-        """Perform a password-hash check when no usable account hash is available."""
+        """Perform a password-hash check when no usable account hash is available.
+
+        :param password: The password to check against the dummy hash.
+        :type password: str | None
+
+        :raises ValueError: If the password does not match the dummy hash.
+        """
         check_password_hash(
             DUMMY_PASSWORD_HASH,
             password if isinstance(password, str) else "",
@@ -702,7 +727,13 @@ class UserService:
 
     @staticmethod
     def _flush(session: Session) -> None:
-        """Flush pending changes and roll back if a constraint fails."""
+        """Flush pending changes and roll back if a constraint fails.
+        
+        :param session: The SQLAlchemy session to use for database operations.
+        :type session: Session
+
+        :raises SQLAlchemyError: If there is an error during database operations.
+        """
         try:
             session.flush()
         except SQLAlchemyError:
@@ -715,7 +746,6 @@ class UserService:
 
         :param session: The SQLAlchemy session to use for database operations.
         :type session: Session
-
         :param names: A list of group names to retrieve.
         :type names: list[str]
 
@@ -723,6 +753,7 @@ class UserService:
         :rtype: list[Group]
 
         :raises ValueError: If any of the requested groups do not exist.
+        :raises SQLAlchemyError: If there is an error during database operations.
         """
         if not names:
             return []
@@ -741,7 +772,6 @@ class UserService:
 
         :param record: The database user record to convert.
         :type record: User
-
         :param source: The authentication source of the user, either "internal" or "external".
         :type source: Literal["internal", "external"]
 
@@ -769,7 +799,14 @@ class UserService:
 
     @staticmethod
     def _auth_source(record: User) -> Literal["internal", "external"]:
-        """Return the persisted provenance, including a legacy OIDC fallback."""
+        """Return the persisted provenance, including a legacy OIDC fallback.
+
+        :param record: The database user record to check.
+        :type record: User
+
+        :return: The authentication source of the user, either "internal" or "external".
+        :rtype: Literal["internal", "external"]
+        """
         session = object_session(record)
         identity = session.get(UserIdentity, record.id) if session is not None else None
         if identity is not None:

@@ -1,0 +1,8 @@
+.git
+.venv*
+node_modules
+tmp
+.pytest_cache
+**/__pycache__
+src/api/web/static/vendor
+src/api/web/static/app.css
