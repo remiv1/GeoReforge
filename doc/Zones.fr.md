@@ -107,9 +107,9 @@ La TUI accepte des chemins personnalisés avec `--catalog`, `--data` et `--zones
 
 ```sh
 PYTHONPATH=scripts python -m zones_maker.main \
-  --catalog doc/naturalearth.json \
+  --catalog src/naturalearth.json \
   --data tmp \
   --zones src/zones.toml
 ```
 
-Les chemins du notebook sont définis dans sa cellule d’initialisation : catalogue `doc/naturalearth.json`, données `tmp` et fichier de sortie `src/zones.toml`. Modifiez-les dans cette cellule si vous utilisez une autre organisation.
+Les chemins du notebook sont définis dans sa cellule d’initialisation : catalogue `src/naturalearth.json`, données `tmp` et fichier de sortie `src/zones.toml`. Modifiez-les dans cette cellule si vous utilisez une autre organisation.

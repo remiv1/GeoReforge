@@ -1,0 +1,80 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "podman",
+            "args": [
+                "build",
+                "-f ./src/dockerfile.api",
+                "-t georeforge:1.0.0"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": "podman",
+            "args": [
+                "run",
+                "--rm",
+                "-p 8080:8080",
+                "georeforge:1.0.0"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "detached run",
+            "type": "shell",
+            "command": "podman",
+            "args": [
+                "run",
+                "--rm",
+                "-d",
+                "-p 8080:8080",
+                "georeforge:1.0.0"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            }
+        },
+        {
+            "label": "stop",
+            "type": "shell",
+            "command": "podman",
+            "args": [
+                "stop",
+                "georeforge:1.0.0"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "launch tests",
+            "type": "shell",
+            "args": [
+                "bash",
+                "./scripts/test_databases.sh"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        }
+    ]
+}

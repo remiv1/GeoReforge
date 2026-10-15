@@ -105,9 +105,9 @@ The TUI accepts custom paths with `--catalog`, `--data`, and `--zones`:
 
 ```sh
 PYTHONPATH=scripts python -m zones_maker.main \
-  --catalog doc/naturalearth.json \
+  --catalog src/naturalearth.json \
   --data tmp \
   --zones src/zones.toml
 ```
 
-The notebook paths are set in its initialization cell: the catalog is `doc/naturalearth.json`, the data directory is `tmp`, and the output file is `src/zones.toml`. Change those paths there when using a different layout.
+The notebook paths are set in its initialization cell: the catalog is `src/naturalearth.json`, the data directory is `tmp`, and the output file is `src/zones.toml`. Change those paths there when using a different layout.

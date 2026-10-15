@@ -59,7 +59,7 @@ def make_archive(member_name: str) -> bytes:
 
 def test_load_catalog_validates_and_returns_typed_datasets() -> None:
     """Teste que le catalogue est chargé correctement et que les datasets sont typés."""
-    catalog_path = Path(__file__).resolve().parents[1] / "doc" / "naturalearth.json"
+    catalog_path = Path(__file__).resolve().parents[1] / "src" / "naturalearth.json"
 
     datasets = load_catalog(catalog_path)
 

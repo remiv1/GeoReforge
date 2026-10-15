@@ -5,6 +5,9 @@ Database objects for users.
     - `User`: Represents a user in the database.
     - `Group`: Represents a group of users in the database.
     - `UserSession`: Represents a session of a user in the database.
+    - `UserLoginState`: Represents a user's login attempt state in the database.
+    - `AuthRuntimeState`: Represents the authentication runtime state of a user in the database.
+    - `UserIdentity`: Represents the identity of a user in the database.
 
 .. constant::
     - `_USER_ID`: Description of the unique identifier of the user in the database.
@@ -334,4 +337,117 @@ class UserSession(Base):
     user: Mapped["User"] = relationship(
         "User",
         back_populates="sessions",
+    )
+
+
+class UserLoginState(Base):
+    """Persistent state of a user's login attempts.
+    
+    :param user_id: Unique identifier of the user.
+    :type user_id: int
+    :param failed_attempts: Number of failed login attempts.
+    :type failed_attempts: int
+    :param locked: Indicates whether the user's account is locked.
+    :type locked: bool
+
+    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
+    .. version:: 1.0.0
+    """
+
+    __tablename__ = "user_login_states"
+    __table_args__ = TABLE_ARGS
+
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(foreign_key_target("users")),
+        primary_key=True,
+    )
+    failed_attempts: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+    locked: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+
+
+class UserIdentity(Base):
+    """Authentication provenance associated with a persisted user.
+
+    :param user_id: Unique identifier of the user.
+    :type user_id: int
+    :param auth_source: Source of authentication (e.g., local, OAuth).
+    :type auth_source: str
+    :param issuer: Issuer of the authentication token, if applicable.
+    :type issuer: str | None
+    :param subject: Subject of the authentication token, if applicable.
+    :type subject: str | None
+
+    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
+    .. version:: 1.0.0
+    """
+
+    __tablename__ = "user_identities"
+    __table_args__ = (
+        UniqueConstraint("issuer", "subject"),
+        TABLE_ARGS,
+    )
+
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(foreign_key_target("users")),
+        primary_key=True,
+        comment="Unique identifier of the user",
+    )
+    auth_source: Mapped[str] = mapped_column(
+        String(16),
+        nullable=False,
+        comment="Source of authentication (e.g., local, OAuth)",
+    )
+    issuer: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        comment="Issuer of the authentication token, if applicable",
+    )
+    subject: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        comment="Subject of the authentication token, if applicable",
+    )
+
+
+class AuthRuntimeState(Base):
+    """Persist the authentication context currently owning the database.
+
+    :param id: Unique identifier of the authentication runtime state.
+    :type id: int
+    :param auth_mode: Authentication mode currently in use.
+    :type auth_mode: str
+    :param issuer: Issuer of the authentication token, if applicable.
+    :type issuer: str | None
+
+    .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
+    .. version:: 1.0.0
+    """
+
+    __tablename__ = "auth_runtime_state"
+    __table_args__ = TABLE_ARGS
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        comment="Unique identifier of the authentication runtime state",
+    )
+    auth_mode: Mapped[str] = mapped_column(
+        String(16),
+        nullable=False,
+        comment="Authentication mode currently in use",
+    )
+    issuer: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        comment="Issuer of the authentication token, if applicable",
     )

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# Base test script for running database-related tests
+# .. module_author:: Rémi Verschuur <rvershuur@audit-io.fr>
+# .. version:: 1.0.0
+
 set -uo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -66,7 +71,8 @@ fi
 
 printf 'Exécution des tests paramétrés par backend.\n'
 if PYTHONPATH="$ROOT_DIR/src:$ROOT_DIR/scripts" "$PYTHON_BIN" -m pytest -v \
-    tests/test_data_pipeline.py tests/test_database.py tests/test_zones_maker.py; then
+    tests/test_data_pipeline.py tests/test_database.py tests/test_zones_maker.py \
+    tests/test_auth.py; then
     printf 'Tous les tests pytest sont passés.\n'
 else
     pytest_status=$?

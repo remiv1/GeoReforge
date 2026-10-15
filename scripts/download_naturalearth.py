@@ -1,4 +1,50 @@
-"""Télécharge et extrait les archives décrites dans le catalogue Natural Earth."""
+"""Downloads and extracts the archives described in the Natural Earth catalog.
+
+.. classes::
+    - `DownloadTask`: Represents a download task for an archive and its extraction destination.
+    - `_ArgumentDefaultsRawDescriptionHelpFormatter`: Custom argument parser help formatter.
+
+.. functions::
+    - `build_tasks`: Build download tasks from the catalog.
+    - `_build_family_tasks`: Build download tasks for a specific family from the catalog.
+    - `_build_entry_tasks`: Build download tasks for a specific entry within a family.
+    - `_validate_archive`: Validate the contents of a downloaded archive.
+    - `download_and_extract`: Download an archive and extract its contents.
+    - `parse_arguments`: Parse command-line arguments for the script.
+    - `download_all`: Download and extract all tasks from the catalog.
+    - `main`: Entry point for the script.
+
+.. constants::
+    - `PROJECT_ROOT`: The root directory of the project.
+    - `DEFAULT_CATALOG_PATH`: Default path to the Natural Earth catalog JSON file.
+    - `DEFAULT_OUTPUT_PATH`: Default output directory for extracted archives.
+    - `BASE_URL`: Base URL for downloading Natural Earth archives.
+    - `PRECISION_TO_RESOLUTION`: Mapping from precision levels to resolution values.
+    - `FAMILIES`: Tuple of family names in the catalog.
+
+.. note::
+    This script is used to download and extract Natural Earth archives based on a JSON catalog.
+    It's used to explore and make researches on Natural Earth data. This script isn't used
+    for production purposes.
+
+.. usage::
+    ```bash
+    python scripts/download_naturalearth.py [--catalog CATALOG_PATH] [--output OUTPUT_PATH]
+    ```
+
+.. args::
+    - `--catalog CATALOG_PATH`: Path to the Natural Earth catalog JSON file.
+    Defaults to `DEFAULT_CATALOG_PATH`.
+    - `--output OUTPUT_PATH`: Output directory for extracted archives.
+    Defaults to `DEFAULT_OUTPUT_PATH`.
+    - `--timeout TIMEOUT`: Timeout in seconds for downloading each archive. Defaults to `30`.
+    - `--workers WORKERS`: Number of concurrent download workers. Defaults to `4`.
+    - `--dry-run`: Perform a dry run without actually downloading or extracting archives.
+    Defaults to `False`.
+    
+.. module_author:: Rémi Verschuur <rvershuur@audit-io.fr>
+.. version:: 1.0.0
+"""
 
 from __future__ import annotations
 
@@ -11,17 +57,24 @@ import shutil
 import stat
 import sys
 import tempfile
+from textwrap import dedent
 from typing import Any
 from urllib.request import Request, urlopen
 from zipfile import BadZipFile, ZipFile
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CATALOG_PATH = PROJECT_ROOT / "doc" / "naturalearth.json"
+DEFAULT_CATALOG_PATH = PROJECT_ROOT / "src" / "naturalearth.json"
 DEFAULT_OUTPUT_PATH = PROJECT_ROOT / "tmp"
 BASE_URL = "https://naturalearth.s3.amazonaws.com"
 PRECISION_TO_RESOLUTION = {"high": 10, "medium": 50, "low": 110}
 FAMILIES = ("cultural", "physical", "raster")
+
+
+class _ArgumentDefaultsRawDescriptionHelpFormatter(
+    argparse.ArgumentDefaultsHelpFormatter,
+    argparse.RawDescriptionHelpFormatter,
+):
+    pass
 
 
 @dataclass(frozen=True)
@@ -154,16 +207,55 @@ def download_and_extract(task: DownloadTask, output_path: Path, timeout: int) ->
 
 def _parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Télécharge et extrait les archives listées dans naturalearth.json."
+        description="Download and extract Natural Earth archives from a JSON catalog.",
+        formatter_class=_ArgumentDefaultsRawDescriptionHelpFormatter,
+        epilog=dedent(
+            """\
+            Examples:
+              python scripts/download_naturalearth.py --dry-run
+              python scripts/download_naturalearth.py --catalog src/naturalearth.json --output tmp
+
+            Note:
+              This utility is for exploring Natural Earth data; it is not used in production.
+
+            Version: 1.0.0
+            Author: Rémi Verschuur <rverschuur@audit-io.fr>
+            """
+        ),
     )
-    parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG_PATH)
-    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT_PATH)
-    parser.add_argument("--timeout", type=int, default=60)
-    parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument(
+        "--catalog",
+        type=Path,
+        default=DEFAULT_CATALOG_PATH,
+        help="Path to the Natural Earth JSON catalog.",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OUTPUT_PATH,
+        help="Directory where archives are extracted.",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=60,
+        help="Download timeout in seconds.",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=4,
+        help="Number of concurrent downloads.",
+    )
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Affiche les URL prévues sans effectuer de téléchargement.",
+        help="List planned URLs without downloading or extracting archives.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s 1.0.0",
     )
     args = parser.parse_args()
     if args.timeout <= 0 or args.workers <= 0:

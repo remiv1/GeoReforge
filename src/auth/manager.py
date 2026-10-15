@@ -37,11 +37,16 @@ class AuthManager:
     :type settings: FlaskSettings
 
     .. methods::
+        - `get_backend`: Returns the current authentication backend.
+        - `initialize_database`: Initializes the database with initial groups
+        and admin user if necessary.
         - `authenticate`: Authenticates a user based on provided credentials.
         - `begin_login`: Initiates the login process by redirecting to the OIDC provider.
         - `complete_login`: Completes the login process and returns the authenticated user.
         - `get_current_user`: Retrieves the currently authenticated user based on the session token.
         - `logout`: Logs out the user by deleting the session token.
+        - `_create_backend`: Internal method to create the appropriate authentication backend
+        based on the current mode.
 
     .. author: Rémi Verschuur <rverschuur@audit-io.fr>
     .. version:: 1.0.0
@@ -91,10 +96,16 @@ class AuthManager:
         :rtype: None
         """
         service = UserService(db_session)
+        service.synchronize_auth_context(
+            settings.AUTH_MODE,
+            settings.OIDC_ISSUER if settings.AUTH_MODE == "external" else None,
+        )
+        service.ensure_identity_records()
         if settings.AUTH_MODE == "internal":
             service.ensure_initial_admin(settings.ADMIN_USERNAME, settings.ADMIN_PASSWORD)
         elif settings.AUTH_MODE == "external":
             service.ensure_groups()
+        service.ensure_login_states()
 
     def authenticate(
         self,
@@ -111,7 +122,11 @@ class AuthManager:
         """
         user = self.backend.authenticate(credentials)
         if user is None:
-            LOGGER.warning("Authentication failed for credentials: %s", credentials)
+            log_credentials = {
+                key: ("***" if key.lower() == "password" else value)
+                for key, value in credentials.items()
+            } if credentials else None
+            LOGGER.warning("Authentication failed for credentials: %s", log_credentials)
             return None
         token = self.sessions.create(int(user.id)) if self.mode != "none" else None
         return user, token

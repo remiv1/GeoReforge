@@ -18,6 +18,8 @@ import logging
 from flask import Blueprint, current_app, jsonify, make_response, request, Response
 from flask_wtf.csrf import generate_csrf
 from authlib.integrations.base_client.errors import OAuthError
+from joserfc.errors import BadSignatureError
+from requests.exceptions import RequestException
 
 from auth.decorators import get_current_user, require_auth
 from auth.manager import AuthManager
@@ -59,7 +61,11 @@ def login() -> Response | tuple[Response, int]:
     manager: AuthManager = current_app.extensions["auth_manager"]
     if request.method == "GET":
         if manager.mode == "external":
-            response = manager.begin_login()
+            try:
+                response = manager.begin_login()
+            except (ConnectionError, TimeoutError, RequestException):
+                LOGGER.warning("OIDC provider is unavailable during login initialization")
+                return jsonify(error="Identity provider temporarily unavailable"), 503
             if response is not None:
                 return response
         return jsonify(error="Interactive login is not available in this mode"), 405
@@ -85,7 +91,7 @@ def login() -> Response | tuple[Response, int]:
             token,
             max_age=int(manager.sessions.lifetime.total_seconds()),
             httponly=True,
-            secure=manager.settings.AUTH_COOKIE_SECURE,
+            secure=manager.settings.ENFORCE_SECURE_CONNECTION,
             samesite="Lax",
             path="/",
         )
@@ -109,7 +115,10 @@ def oidc_callback() -> Response | tuple[Response, int]:
         return jsonify(error="OIDC is not enabled"), 404
     try:
         user, token = manager.complete_login()
-    except (OAuthError, ValueError, KeyError):
+    except (ConnectionError, TimeoutError, RequestException):
+        LOGGER.exception("OIDC provider is unavailable during callback")
+        return jsonify(error="Identity provider temporarily unavailable"), 503
+    except (OAuthError, BadSignatureError, ValueError, KeyError):
         LOGGER.exception("OIDC authentication failed")
         return jsonify(error="OIDC authentication failed"), 401
     response = make_response(jsonify(user=user.to_dict()))
@@ -118,7 +127,7 @@ def oidc_callback() -> Response | tuple[Response, int]:
         token,
         max_age=int(manager.sessions.lifetime.total_seconds()),
         httponly=True,
-        secure=manager.settings.AUTH_COOKIE_SECURE,
+        secure=manager.settings.ENFORCE_SECURE_CONNECTION,
         samesite="Lax",
         path="/",
     )
@@ -138,7 +147,7 @@ def logout() -> Response:
     response.delete_cookie(
         manager.settings.AUTH_COOKIE_NAME,
         httponly=True,
-        secure=manager.settings.AUTH_COOKIE_SECURE,
+        secure=manager.settings.ENFORCE_SECURE_CONNECTION,
         samesite="Lax",
         path="/",
     )

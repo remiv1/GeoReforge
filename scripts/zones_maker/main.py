@@ -1,6 +1,21 @@
-"""Interface Textual pour créer une configuration zones.toml."""
+"""Textual Interface to create a `zones.toml` configuration.
+
+.. note::
+    To launch the TUI application, change directory to position yourself at the `scripts` folder
+    and run `python zones_maker/main.py`.
+    
+    ```bash
+    cd scripts
+    python zones_maker/main.py # or python3 zones_maker/main.py
+    ```
+
+.. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
+.. version:: 1.0
+"""
 
 from __future__ import annotations
+
+import sys
 
 import argparse
 from pathlib import Path
@@ -25,7 +40,11 @@ from textual.widgets import ( # pylint: disable=E0401
 )
 from textual.widgets.option_list import Option # pylint: disable=E0401
 
-from zones_maker.utils import (
+PYTHONPATH = str(Path.cwd())
+print(PYTHONPATH)
+sys.path.insert(0, PYTHONPATH)
+
+from zones_maker.utils import ( # pylint: disable=C0413
     FAMILY_NAMES,
     PRECISION_ORDER,
     Dataset,
@@ -127,7 +146,7 @@ class ZoneMakerApp(App[None]):  # pylint: disable=R0902, R0904
 
     def __init__(
         self,
-        catalog_path: Path = PROJECT_ROOT / "doc" / "naturalearth.json",
+        catalog_path: Path = PROJECT_ROOT / "src" / "naturalearth.json",
         data_path: Path = PROJECT_ROOT / "tmp",
         zones_path: Path = PROJECT_ROOT / "src" / "zones.toml",
     ) -> None:
@@ -597,7 +616,7 @@ def parse_arguments() -> argparse.Namespace:
     """Analyse les arguments de la ligne de commande."""
     parser = argparse.ArgumentParser(description="Créer un fichier zones.toml Natural Earth.")
     parser.add_argument(
-        "--catalog", type=Path, default=PROJECT_ROOT / "doc" / "naturalearth.json"
+        "--catalog", type=Path, default=PROJECT_ROOT / "src" / "naturalearth.json"
     )
     parser.add_argument("--data", type=Path, default=PROJECT_ROOT / "tmp")
     parser.add_argument("--zones", type=Path, default=PROJECT_ROOT / "src" / "zones.toml")

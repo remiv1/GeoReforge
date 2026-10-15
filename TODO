@@ -1,0 +1,30 @@
+# Todo
+
+## Nécessaire
+
+### Sécurité
+
+- [ ] **AUTH-01 · V1 · Rendre le contrat OIDC strict et le valider de bout en bout.**
+  - Preuve : [OIDCAuthBackend.complete_login](src/auth/backends/oidc.py#L129) appelle UserInfo si `token['userinfo']` manque. Un double retournant seulement un access token et un profil permet de terminer ce chemin sans ID token. Cela prouve le repli applicatif, pas un contournement démontré d'un véritable IdP. Authlib vérifie `state` et, lorsque l'ID token et le nonce sont présents, la signature et les claims ; il ne faut pas réimplémenter ces contrôles.
+  - Décision V0 : aucun changement du code OIDC. Les tests ajoutés simulent le callback et des erreurs attendues ; ils ne valident pas un vrai fournisseur. Le durcissement reste planifié en V1 : exiger un ID token validé, vérifier la cohérence UserInfo/`sub`, encadrer issuer/audience/dates/nonce et valider les URL/HTTPS ; tester discovery, JWKS et rotation de clés avec un IdP de test.
+  - Clôture : refuser absence d'ID token, mauvaise signature, mauvais issuer/audience, expiration, nonce/state invalides, rejeu et sujets incohérents ; réussir le parcours nominal dans le navigateur.
+
+- [ ] **AUTH-01 · V1 · Formaliser l'attribution des privilèges externes et la fraîcheur des droits.**
+  - Preuve : [UserService.sync_external_user](src/auth/services/user_service.py#L270) filtre les noms autorisés, mais accorde directement `ADMIN` si cette chaîne figure dans `groups`. Rien ne prouve dans le dépôt que ce claim est administré exclusivement par l'IdP ; le scope demandé ne garantit pas sa présence. Les groupes ne sont synchronisés qu'au login : une suppression de rôle ou désactivation côté IdP ne révoque pas la session locale de 12 heures.
+  - Décision V0 : aucune modification de la politique de groupes externes. Les groupes `ADMIN`, `EDITOR` et `VIEWER` restent dépendants des claims du fournisseur. En V1, formaliser et valider la source/mapping des claims, empêcher l'auto-attribution de privilèges et définir la fraîcheur des droits et la révocation des sessions externes.
+  - Clôture : un utilisateur ne contrôlant que son profil ne peut pas devenir ADMIN ; absence de claim et retrait de privilège ont des effets explicites et vérifiés.
+
+## Optionnel
+
+### Sécurité optionnel
+
+- [ ] **OPT-01 · Ajouter un parcours d'administration protégé** : CLI ou API/UI pour gérer comptes, groupes et désactivations. Prévoir droits ADMIN explicites, traçabilité, pagination, visibilité des comptes désactivés et protection du dernier administrateur. Le CRUD de service est déjà présent ; l'absence d'API CRUD n'est pas une violation de ce contrat.
+- [ ] **OPT-02 · Ajouter changement et récupération de mot de passe** : réauthentification pour les opérations sensibles, jetons de récupération à usage unique et durée courte, absence d'énumération. Utiliser l'IdP pour les comptes externes.
+- [ ] **OPT-03 · Proposer la MFA ou les passkeys** : privilégier la politique MFA de l'IdP, notamment pour ADMIN ; ajouter une solution interne éprouvée seulement si ce mode doit couvrir ce besoin. Cette option devient une exigence selon le niveau de risque.
+- [ ] **OPT-04 · Activer PKCE S256 pour OIDC** lorsque le fournisseur le permet ; vérifier la liaison du code à la requête initiale et le comportement multi-workers. Aucun paramètre PKCE n'est actuellement configuré dans le backend.
+- [ ] **OPT-05 · Ajouter une déconnexion fédérée** : le logout actuel révoque seulement la session GeoReforge, pas la session IdP ; une nouvelle connexion peut donc être transparente. Documenter cette limite avant une éventuelle implémentation de logout OIDC ou de back-channel logout.
+- [ ] **OPT-06 · Rendre la politique de session configurable** : durée absolue, inactivité, limite de sessions simultanées, liste des appareils et révocation sélective. Aujourd'hui la durée de 12 heures est fixée dans `SessionService` et les sessions expirées non rejouées ne sont pas purgées ; ajouter une purge planifiée et les index utiles avant forte volumétrie.
+- [ ] **OPT-07 · Ajouter une piste d'audit de sécurité** : connexions, refus, changements de privilèges, révocations et actions d'administration, sans secrets ni profil complet ; définir rétention, accès, alertes et protection des données personnelles.
+- [ ] **OPT-08 · Préparer les migrations et la maintenance des dépendances** : migrations de schéma versionnées pour la provenance et les sessions, contrôle des versions résolues et analyse régulière des dépendances. Cet audit ne conclut à aucune CVE particulière.
+- [ ] **OPT-09 · Améliorer le contrat des services et la documentation** : séparer clairement comptes actifs/tous comptes, corriger le diagnostic des paramètres OIDC manquants dans `validate_authentication`, retirer le typage `Any` quand le contrat tiers est connu et éviter les effets de bord de création d'application à l'import. Documenter les limites des trois modes et les réglages de sécurité dans les deux langues.
+- [ ] **OPT-10 · Ajouter un profil de déploiement durci** : TLS/HSTS au proxy, noms de cookies préfixés `__Host-` si compatibles, bornes de requêtes et en-têtes de sécurité. Documenter précisément la confiance accordée au proxy et ne pas accepter aveuglément des en-têtes forwarded.

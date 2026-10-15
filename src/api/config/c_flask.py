@@ -11,6 +11,7 @@ This module contains the configuration settings for the GeoReforge application.
 from __future__ import annotations
 
 import logging
+import re
 
 from typing import Literal
 from urllib.parse import urlparse
@@ -19,6 +20,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, model_validator
 
 LOGGER = logging.getLogger(__name__)
+COOKIE_NAME_PATTERN = re.compile(r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$")
 
 class Settings(BaseSettings):
     """Settings for the GeoReforge application.
@@ -49,12 +51,24 @@ class Settings(BaseSettings):
     :type OIDC_REDIRECT_URI: str
     :param AUTH_COOKIE_NAME: The name of the authentication cookie.
     :type AUTH_COOKIE_NAME: str
-    :param AUTH_COOKIE_SECURE: Whether the authentication cookie should be secure.
-    :type AUTH_COOKIE_SECURE: bool
+    :param ENFORCE_SECURE_CONNECTION: Whether requests must use HTTPS.
+    :type ENFORCE_SECURE_CONNECTION: bool
+    :param SESSION_COOKIE_NAME: The name of the Flask session cookie.
+    :type SESSION_COOKIE_NAME: str
+    :param SESSION_COOKIE_HTTPONLY: Whether the Flask session cookie is HttpOnly.
+    :type SESSION_COOKIE_HTTPONLY: bool
+    :param SESSION_COOKIE_SECURE: Whether the Flask session cookie requires HTTPS.
+    :type SESSION_COOKIE_SECURE: bool
+    :param SESSION_COOKIE_SAMESITE: SameSite policy for the Flask session cookie.
+    :type SESSION_COOKIE_SAMESITE: str
+    :param SESSION_COOKIE_PATH: Path scope for the Flask session cookie.
+    :type SESSION_COOKIE_PATH: str
 
     .. methods::
         - `validate_authentication`: Validates the authentication-related settings based
         on the chosen authentication mode.
+        - `_validate_cookie_names`: Validates the names of the authentication and session cookies.
+        - `_validate_flask_cookie_settings`: Validates the Flask session cookie settings.
 
     .. author:: Rémi Verschuur <rverschuur@audit-io.fr>
     .. version:: 1.0.0
@@ -71,6 +85,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = Field(default="default_secret_key")
     LOG_LEVEL: str = Field(default="info")
     AUTH_MODE: Literal["none", "internal", "external"] = "none"
+    ALLOW_ANONYMOUS_ACCESS: bool = False
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = Field(default="", repr=False)
     OIDC_ISSUER: str = ""
@@ -78,10 +93,42 @@ class Settings(BaseSettings):
     OIDC_CLIENT_SECRET: str = Field(default="", repr=False)
     OIDC_REDIRECT_URI: str = ""
     AUTH_COOKIE_NAME: str = "georeforge_session"
-    AUTH_COOKIE_SECURE: bool = False
+    SESSION_COOKIE_NAME: str = "session"
+    ENFORCE_SECURE_CONNECTION: bool = False
+    SESSION_COOKIE_HTTPONLY: bool = True
+    SESSION_COOKIE_SECURE: bool = False
+    SESSION_COOKIE_SAMESITE: str = "Lax"
+    SESSION_COOKIE_PATH: str = "/"
+
+    def _validate_cookie_names(self) -> None:
+        for setting_name, cookie_name in (
+            ("AUTH_COOKIE_NAME", self.AUTH_COOKIE_NAME),
+            ("SESSION_COOKIE_NAME", self.SESSION_COOKIE_NAME),
+        ):
+            if not COOKIE_NAME_PATTERN.fullmatch(cookie_name):
+                raise ValueError(f"{setting_name} doit être un nom de cookie valide")
+        if self.AUTH_COOKIE_NAME == self.SESSION_COOKIE_NAME:
+            raise ValueError(
+                "Les noms des cookies d'authentification et Flask doivent différer"
+            )
+
+    def _validate_flask_cookie_settings(self) -> None:
+        if not self.SESSION_COOKIE_HTTPONLY:
+            raise ValueError("SESSION_COOKIE_HTTPONLY doit rester activé")
+        if self.SESSION_COOKIE_SAMESITE != "Lax":
+            raise ValueError("SESSION_COOKIE_SAMESITE doit être Lax")
+        if self.SESSION_COOKIE_PATH != "/":
+            raise ValueError("SESSION_COOKIE_PATH doit être /")
+        if self.SESSION_COOKIE_SECURE != self.ENFORCE_SECURE_CONNECTION:
+            if "SESSION_COOKIE_SECURE" in self.model_fields_set:
+                raise ValueError(
+                    "SESSION_COOKIE_SECURE doit correspondre à "
+                    "ENFORCE_SECURE_CONNECTION"
+                )
+            self.SESSION_COOKIE_SECURE = self.ENFORCE_SECURE_CONNECTION # type: ignore # pylint: disable=C0103
 
     @model_validator(mode="after")
-    def validate_authentication(self):
+    def validate_authentication(self) -> Settings:
         """Validate the necessary secrets for the chosen authentication mode.
         
         :return: The validated settings instance.
@@ -89,15 +136,29 @@ class Settings(BaseSettings):
 
         :raises ValueError: If the authentication-related settings are invalid.
         """
+        self._validate_cookie_names()
+        self._validate_flask_cookie_settings()
         if self.AUTH_MODE == "none":
+            if (
+                self.FLASK_ENV.lower() == "production"  # pylint: disable=E1101
+                and "AUTH_MODE" in self.model_fields_set
+                and not self.ALLOW_ANONYMOUS_ACCESS
+            ):
+                LOGGER.exception(
+                    "ALLOW_ANONYMOUS_ACCESS must be enabled when AUTH_MODE is 'none' in production"
+                )
+                raise ValueError(
+                    "ALLOW_ANONYMOUS_ACCESS doit etre active pour utiliser "
+                    "AUTH_MODE=none en production"
+                )
             LOGGER.debug("Authentication mode is set to 'none'")
             return self
-        if self.SECRET_KEY == "default_secret_key":
-            LOGGER.exception("SECRET_KEY is set to the default value")
-            raise ValueError("SECRET_KEY doit etre personnalise hors du mode none")
-        if self.AUTH_MODE == "internal" and not self.ADMIN_PASSWORD:
-            LOGGER.exception("ADMIN_PASSWORD is not set in internal authentication mode")
-            raise ValueError("ADMIN_PASSWORD doit etre defini en mode internal")
+        if self.SECRET_KEY == "default_secret_key" or len(self.SECRET_KEY) < 32:
+            LOGGER.error("SECRET_KEY is default or shorter than 32 characters")
+            raise ValueError(
+                "SECRET_KEY doit être personnalisé et contenir au moins 32 caractères "
+                "hors du mode none"
+            )
         if self.AUTH_MODE == "external":
             required = (
                 self.OIDC_ISSUER,

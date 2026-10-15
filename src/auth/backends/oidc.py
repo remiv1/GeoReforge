@@ -21,6 +21,7 @@ from auth.models import User
 from auth.services import SessionService, UserService
 
 LOGGER = logging.getLogger(__name__)
+OIDC_REQUEST_TIMEOUT_SECONDS = 10
 
 @dataclass
 class OIDCConfig:
@@ -99,7 +100,10 @@ class OIDCAuthBackend(AuthBackend):
             client_id=config.client_id,
             client_secret=config.client_secret,
             server_metadata_url=f"{config.issuer.rstrip('/')}/.well-known/openid-configuration",
-            client_kwargs={"scope": "openid profile email"},
+            client_kwargs={
+                "scope": "openid profile email",
+                "default_timeout": OIDC_REQUEST_TIMEOUT_SECONDS,
+            },
         )
         self.issuer = config.issuer
         self.redirect_uri = config.redirect_uri

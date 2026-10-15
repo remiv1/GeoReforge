@@ -228,7 +228,15 @@ class DatabaseConfig:   # pylint: disable=R0903
         """
         from api.common.db_objects.geo_zones import GeographicZone  # pylint: disable=C0415
         from api.common.db_objects.geo_forged import GeoForged, GeoForgedItem  # pylint: disable=C0415
-        from api.common.db_objects.users import User, Group, UserGroup, UserSession  # pylint: disable=C0415
+        from api.common.db_objects.users import (   # pylint: disable=C0415
+            Group,
+            User,
+            UserGroup,
+            UserSession,
+            UserLoginState,
+            UserIdentity,
+            AuthRuntimeState,
+        )
 
         with self.engine.begin() as connection:
             if self.settings.DB_TYPE == DbType.POSTGRESQL:
@@ -241,6 +249,9 @@ class DatabaseConfig:   # pylint: disable=R0903
             Group.metadata.create_all(connection, checkfirst=True)
             UserGroup.metadata.create_all(connection, checkfirst=True)
             UserSession.metadata.create_all(connection, checkfirst=True)
+            UserLoginState.metadata.create_all(connection, checkfirst=True)
+            UserIdentity.metadata.create_all(connection, checkfirst=True)
+            AuthRuntimeState.metadata.create_all(connection, checkfirst=True)
 
     def _create_engine(self) -> Engine:
         """

@@ -57,15 +57,13 @@ class InternalAuthBackend(AuthBackend):
         :return: Authenticated user or None if authentication fails.
         :rtype: User | None
         """
-        if credentials is None:
-            LOGGER.debug("No credentials provided")
-            return None
-        username = credentials.get("username")
-        password = credentials.get("password")
-        if not isinstance(username, str) or not isinstance(password, str):
-            LOGGER.debug("Invalid credentials format")
-            return None
-        LOGGER.debug("Attempting to authenticate user '%s'", username)
+        username = credentials.get("username") if credentials is not None else None
+        password = credentials.get("password") if credentials is not None else None
+        if not isinstance(username, str):
+            username = None
+        if not isinstance(password, str):
+            password = None
+        LOGGER.debug("Attempting internal authentication")
         return self.user_service.authenticate(username, password)
 
     def get_current_user(self, session_token: str | None = None) -> User | None:

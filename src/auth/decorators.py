@@ -20,6 +20,11 @@ from auth.manager import AuthManager
 from auth.models import User
 
 LOGGER = logging.getLogger(__name__)
+ROLE_LEVELS = {
+    "VIEWER": 0,
+    "EDITOR": 1,
+    "ADMIN": 2
+}
 
 def get_current_user() -> User | None:
     """Returns the current user, cached for the request.
@@ -75,7 +80,13 @@ def require_group(group: str) -> Callable[[Callable[..., Any]], Callable[..., An
             user = get_current_user()
             if user is None:
                 abort(401)
-            if group not in user.groups:
+            required_level = ROLE_LEVELS.get(group)
+            has_group = (
+                any(ROLE_LEVELS.get(user_group, -1) >= required_level for user_group in user.groups)
+                if required_level is not None
+                else group in user.groups
+            )
+            if not has_group:
                 abort(403)
             return view(*args, **kwargs)
 
