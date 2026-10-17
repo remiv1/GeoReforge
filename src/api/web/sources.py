@@ -1,7 +1,30 @@
-"""Preparation for the additions of TOML, without deletion or modification of the existing content.
+"""Validate and stage administrative TOML additions of geographic sources.
 
+The preview flow accepts only vector datasets from the curated Natural Earth
+HTTPS endpoint. It downloads and validates candidate features without writing
+to the database, then stores an owner-bound, signed preview in a private
+staging directory. Applying a valid preview adds only sources that are not
+already present; it never modifies or deletes existing records.
+
+.. classes::
+    - `_Theme`: Validated Natural Earth dataset name, link, and resolutions.
+    - `_Mapping`: Validated source-field mapping and class translations.
+    - `_Families`: Dataset groups and mappings declared in the TOML file.
+    - `_Configuration`: Validated source URL and dataset configuration.
+
+.. functions::
+    - `_fingerprint`: Compute a stable fingerprint for a geographic feature.
+    - `_existing`: Collect fingerprints of features already in the database.
+    - `_download`: Download a bounded archive from the approved Natural Earth host.
+    - `_read_entries`: Read and map features from one dataset archive.
+    - `_mapped_entry`: Validate and normalize a source feature.
+    - `prepare_sources`: Validate TOML and create an owner-bound preview token.
+    - `apply_sources`: Add the new entries from a valid preview token.
+
+.. data:: STAGING
+
+    Private temporary directory used to store prepared source previews.
 """
-# TODO: terminer la documentation
 from __future__ import annotations
 
 from hashlib import sha256
@@ -35,6 +58,18 @@ STAGING = Path(gettempdir()) / "georeforge-previews"
 
 
 class _Theme(BaseModel):
+    """Validate one dataset declaration.
+
+    :param name: Display name of the dataset.
+    :type name: str
+    :param link: Natural Earth archive name suffix.
+    :type link: str
+    :param precision: Resolutions to import.
+    :type precision: list[Literal["low", "medium", "high"]]
+
+    :raises pydantic.ValidationError: If a field does not match its constraints.
+    """
+
     name: str = Field(min_length=1, max_length=100)
     link: str = Field(pattern=r"^[a-z0-9_]+$")
     precision: list[Literal["low", "medium", "high"]] = Field(
@@ -45,6 +80,20 @@ class _Theme(BaseModel):
 
 
 class _Mapping(BaseModel):
+    """Validate field names and class translations for a dataset.
+
+    :param name: Source field containing the feature name.
+    :type name: str
+    :param code: Source field containing the feature code.
+    :type code: str
+    :param source_class: Source field containing the feature class.
+    :type source_class: str
+    :param classes: Optional translations for source class values.
+    :type classes: dict[str, str]
+
+    :raises pydantic.ValidationError: If a field does not match its constraints.
+    """
+
     name: str = Field(min_length=1)
     code: str = Field(min_length=1)
     source_class: str = Field(alias="class", min_length=1)
@@ -52,6 +101,20 @@ class _Mapping(BaseModel):
 
 
 class _Families(BaseModel):
+    """Validate the dataset families and their field mappings.
+
+    :param cultural: Cultural dataset declarations.
+    :type cultural: list[_Theme]
+    :param physical: Physical dataset declarations.
+    :type physical: list[_Theme]
+    :param raster: Raster declarations, which are rejected by the preview flow.
+    :type raster: list[Any]
+    :param mapping: Mapping keyed by Natural Earth dataset link.
+    :type mapping: dict[str, _Mapping]
+
+    :raises pydantic.ValidationError: If a family or mapping is invalid.
+    """
+
     cultural: list[_Theme] = Field(default_factory=lambda: cast(list[_Theme], []))
     physical: list[_Theme] = Field(default_factory=lambda: cast(list[_Theme], []))
     raster: list[Any] = Field(default_factory=list)
@@ -59,15 +122,51 @@ class _Families(BaseModel):
 
 
 class _Configuration(BaseModel):
+    """Validate the top-level TOML source configuration.
+
+    :param source_path: Base URL for the source provider.
+    :type source_path: str
+    :param data_family: Configured dataset families and mappings.
+    :type data_family: _Families
+
+    :raises pydantic.ValidationError: If the configuration is invalid.
+    """
+
     source_path: str
     data_family: _Families
 
 
 def _fingerprint(kind: str, code: str, name: str, geometry: Any) -> str:
+    """Compute a stable fingerprint from feature attributes and normalized geometry.
+
+    :param kind: Normalized feature class.
+    :type kind: str
+    :param code: Feature code.
+    :type code: str
+    :param name: Feature name.
+    :type name: str
+    :param geometry: Shapely geometry to normalize.
+    :type geometry: Any
+
+    :return: SHA-256 digest of the feature identity.
+    :rtype: str
+
+    :raises AttributeError: If the object does not provide geometry normalization.
+    """
     return sha256(f"{kind}\0{code}\0{name}\0{geometry.normalize().wkb_hex}".encode()).hexdigest()
 
 
 def _existing(database: Session) -> set[str]:
+    """Return fingerprints for all geographic zones already in the database.
+
+    :param database: Session used to query existing geographic zones.
+    :type database: Session
+
+    :return: Fingerprints of the stored zones.
+    :rtype: set[str]
+
+    :raises SQLAlchemyError: If the database query fails.
+    """
     return {
         _fingerprint(record.kind, record.code, record.name, read_geometry(record.boundary))
         for record in database.scalars(select(GeographicZone))
@@ -75,39 +174,65 @@ def _existing(database: Session) -> set[str]:
 
 
 def _download(url: str) -> BytesIO:
+    """Download a bounded archive from the approved Natural Earth host.
+
+    :param url: HTTPS URL of the source archive.
+    :type url: str
+
+    :return: Downloaded archive content.
+    :rtype: BytesIO
+
+    :raises ValueError: If the URL, response, or archive size is invalid.
+    :raises requests.RequestException: If the HTTP request fails.
+    """
     address = urlparse(url)
     if address.scheme != "https" \
         or address.hostname != "naturalearth.s3.amazonaws.com" \
         or address.username \
         or address.port:
-        raise ValueError("Adresse de source invalide.")
+        raise ValueError("The source URL is invalid.")
     with requests.get(url, timeout=(10, 60), stream=True, allow_redirects=False) as response:
         response.raise_for_status()
         if response.status_code != 200:
-            raise ValueError("Reponse inattendue du serveur de donnees.")
+            raise ValueError("The data provider returned an unexpected response.")
         payload = BytesIO()
         for chunk in response.iter_content(65536):
             payload.write(chunk)
             if payload.tell() > 64 * 1024 * 1024:
-                raise ValueError("Le jeu depasse la taille autorisee de 64 Mio.")
+                raise ValueError("The dataset exceeds the 64 MiB size limit.")
     return payload
 
 
 def _read_entries(url: str, mapper: ZonesMapper) -> list[dict[str, Any]]:
+    """Read, validate, and map the vector features in one source archive.
+
+    :param url: Download URL for the dataset archive.
+    :type url: str
+    :param mapper: Mapper containing field and class translations.
+    :type mapper: ZonesMapper
+
+    :return: Normalized feature records.
+    :rtype: list[dict[str, Any]]
+
+    :raises ValueError: If the mapping or a feature geometry is invalid.
+    :raises KeyError: If a required shapefile component is missing from the archive.
+    :raises zipfile.BadZipFile: If the downloaded archive is invalid.
+    :raises requests.RequestException: If the source archive cannot be downloaded.
+    """
     stem = Path(urlparse(url).path).stem
     mapping_key = next((key for key in mapper.mapping if stem.endswith(f"_{key}")), None)
     if mapping_key is None:
-        raise ValueError(f"Mapping absent pour {stem}.")
+        raise ValueError(f"No mapping was found for {stem}.")
     fields = mapper.get_mapper(mapping_key)
     if not all(fields.get(key) for key in ("code", "name", "class")):
-        raise ValueError(f"Mapping incomplet pour {stem}.")
+        raise ValueError(f"The mapping for {stem} is incomplete.")
     classes = mapper.get_classes()
     with ZipFile(_download(url)) as archive:
         components: list[BytesIO] = []
         for extension in ("shp", "shx", "dbf"):
             entry = archive.getinfo(f"{stem}.{extension}")
             if entry.file_size > 128 * 1024 * 1024:
-                raise ValueError("Archive trop volumineuse.")
+                raise ValueError("A shapefile component exceeds the allowed size.")
             components.append(BytesIO(archive.read(entry)))
     reader = shapefile.Reader(shp=components[0], shx=components[1], dbf=components[2])
     try:
@@ -117,16 +242,30 @@ def _read_entries(url: str, mapper: ZonesMapper) -> list[dict[str, Any]]:
 
 
 def _mapped_entry(item: Any, fields: dict[str, str], classes: dict[str, str]) -> dict[str, Any]:
+    """Validate and normalize one shapefile feature.
+
+    :param item: Shape record returned by the shapefile reader.
+    :type item: Any
+    :param fields: Mapping of feature properties to required fields.
+    :type fields: dict[str, str]
+    :param classes: Translations for source class values.
+    :type classes: dict[str, str]
+
+    :return: Normalized feature data with geometry and fingerprint.
+    :rtype: dict[str, Any]
+
+    :raises ValueError: If required attributes or geometry are invalid.
+    """
     properties = item.record.as_dict()
     source_kind = str(properties.get(fields["class"], "")).strip()
     kind = str(classes.get(source_kind, source_kind))
     code = str(properties.get(fields["code"], "")).strip()
     name = str(properties.get(fields["name"], "")).strip()
     if not kind or not code or not name or len(kind) > 50 or len(code) > 50 or len(name) > 100:
-        raise ValueError("Une entree ne respecte pas le mapping code, nom ou classe.")
+        raise ValueError("A feature does not satisfy the required code, name, or class mapping.")
     geometry = polygonal(shape(item.shape.__geo_interface__))
     if geometry.is_empty or not geometry.is_valid:
-        raise ValueError(f"Geometrie invalide pour {name}.")
+        raise ValueError(f"The geometry for {name} is invalid.")
     return {
         "kind": kind,
         "code": code,
@@ -137,33 +276,38 @@ def _mapped_entry(item: Any, fields: dict[str, str], classes: dict[str, str]) ->
 
 
 def prepare_sources(
-        database: Session,
-        content: bytes,
-        owner: str,
-        secret: str | bytes,
-    ) -> tuple[str, list[dict[str, Any]]]:
-    """Telecharge les jeux declares et prepare uniquement les nouvelles entrees.
+    database: Session,
+    content: bytes,
+    owner: str,
+    secret: str | bytes,
+) -> tuple[str, list[dict[str, Any]]]:
+    """Download configured datasets and stage only new source features.
 
-    Args:
-        database: Session contenant les sources existantes.
-        content: Configuration TOML deposee.
-        owner: Identite proprietaire de l'apercu.
-        secret: Cle de signature de l'application.
+    :param database: Session containing existing source zones.
+    :type database: Session
+    :param content: Uploaded TOML configuration.
+    :type content: bytes
+    :param owner: Identity that owns the preview.
+    :type owner: str
+    :param secret: Application key used to sign the preview token.
+    :type secret: str | bytes
 
-    Returns:
-        Jeton signe et liste des ajouts proposes.
+    :return: Signed preview token and proposed additions.
+    :rtype: tuple[str, list[dict[str, Any]]]
 
-    Raises:
-        ValueError: Si le document ou un jeu de donnees est invalide.
+    :raises ValueError: If the TOML configuration or a dataset is invalid.
+    :raises requests.RequestException: If a source archive cannot be downloaded.
+    :raises SQLAlchemyError: If existing zones cannot be queried.
+    :raises OSError: If the preview cannot be staged on disk.
     """
     try:
         config = _Configuration.model_validate(tomllib.loads(content.decode("utf-8")))
     except (UnicodeError, ValidationError, tomllib.TOMLDecodeError) as error:
-        raise ValueError("Le fichier TOML ou sa structure est invalide.") from error
+        raise ValueError("The TOML file or its structure is invalid.") from error
     if config.source_path.rstrip("/") != "https://naturalearth.s3.amazonaws.com":
-        raise ValueError("Seule la source HTTPS Natural Earth du catalogue est autorisee.")
+        raise ValueError("Only the curated Natural Earth HTTPS source is allowed.")
     if config.data_family.raster:
-        raise ValueError("Les zones sources doivent provenir de jeux vectoriels.")
+        raise ValueError("Source zones must come from vector datasets.")
     known = _existing(database)
     additions: list[dict[str, Any]] = []
     with TemporaryDirectory(prefix="georeforge-toml-") as folder:
@@ -172,14 +316,14 @@ def prepare_sources(
         importer = DataImporter(config_path)
         mapper = ZonesMapper(str(config_path))
         if not 1 <= len(importer.data_themes) <= 30:
-            raise ValueError("La configuration doit contenir entre un et 30 jeux vectoriels.")
+            raise ValueError("The configuration must contain between 1 and 30 vector datasets.")
         for theme in importer.data_themes:
             for item in _read_entries(theme.url_route, mapper):
                 if item["fingerprint"] not in known:
                     additions.append(item)
                     known.add(item["fingerprint"])
                 if len(additions) > 100000:
-                    raise ValueError("Trop d'entrees dans un seul import.")
+                    raise ValueError("A single import cannot contain more than 100,000 entries.")
     STAGING.mkdir(mode=0o700, parents=True, exist_ok=True)
     identifier = uuid4().hex
     destination = STAGING / f"{identifier}.json"
@@ -193,16 +337,24 @@ def prepare_sources(
 
 
 def apply_sources(database: Session, token: str, owner: str, secret: str | bytes) -> int:
-    """Applique un apercu signe valide en evitant les doublons deja presents.
+    """Apply a valid signed preview without adding duplicate source zones.
 
-    Args:
-        database: Session de destination.
-        token: Jeton d'apercu signe.
-        owner: Identite effectuant la validation.
-        secret: Cle de signature de l'application.
+    :param database: Destination database session.
+    :type database: Session
+    :param token: Signed preview token.
+    :type token: str
+    :param owner: Identity applying the preview.
+    :type owner: str
+    :param secret: Application key used to verify the preview token.
+    :type secret: str | bytes
 
-    Returns:
-        Nombre d'entrees ajoutees.
+    :return: Number of source zones added.
+    :rtype: int
+
+    :raises itsdangerous.BadSignature: If the token is invalid or expired.
+    :raises ValueError: If the preview belongs to another identity or is unavailable.
+    :raises SQLAlchemyError: If the source zones cannot be committed.
+    :raises OSError: If the staged preview cannot be read or removed.
     """
     payload = URLSafeTimedSerializer(secret, salt="source-preview").loads(token, max_age=1800)
     identifier = payload.get("id", "")
@@ -211,10 +363,10 @@ def apply_sources(database: Session, token: str, owner: str, secret: str | bytes
         or len(identifier) != 32
         or any(character not in "0123456789abcdef" for character in identifier)
     ):
-        raise ValueError("Cet apercu ne vous appartient pas.")
+        raise ValueError("This preview does not belong to the current identity.")
     path = STAGING / f"{identifier}.json"
     if not path.exists():
-        raise ValueError("Cet apercu a expire ou a deja ete applique.")
+        raise ValueError("This preview has expired or has already been applied.")
     additions: list[dict[str, str]] = cast(
         list[dict[str, str]], json.loads(path.read_text(encoding="utf-8"))
     )

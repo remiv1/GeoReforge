@@ -84,7 +84,7 @@ def test_missing_sqlite_directory_prevents_start(tmp_path: Path) -> None:
 def test_external_first_start_and_restart(database_type: str, url_variable: str) -> None:
     """Prépare une base de test isolée et conserve une géométrie au redémarrage."""
     if url_variable not in os.environ:
-        pytest.skip(f"{url_variable} non défini : conteneur de test non démarré")
+        pytest.skip(f"{url_variable} not set: the test database is not started")
 
     url = make_url(os.environ[url_variable])
     schema = "georeforge_bootstrap_test" if database_type == "postgres" else None

@@ -112,7 +112,7 @@ class Settings(BaseSettings):
         :raises ValueError: If the database configuration is invalid.
         """
         if not self.EXTERNAL_DB and self.DB_TYPE != DbType.SQLITE:
-            LOGGER.exception(
+            LOGGER.error(
                 "Invalid database configuration: If not external, DB_TYPE have to be SQLITE"
             )
             raise ValueError(f"If not external, DB_TYPE have to be {DbType.SQLITE}")
@@ -158,7 +158,7 @@ class Settings(BaseSettings):
                 hpd_string,
             )
             return URL.create(drivername="mariadb+pymysql", **url_param)
-        LOGGER.exception(
+        LOGGER.error(
             "Unsupported DB_TYPE for external database: %s. " +
             "Supported types are: %s",
             self.DB_TYPE,
@@ -177,7 +177,7 @@ class Settings(BaseSettings):
         :raises ValueError: If the database configuration is invalid.
         """
         if not self.EXTERNAL_DB and self.DB_TYPE != DbType.SQLITE:
-            LOGGER.exception(
+            LOGGER.error(
                 "If not external, DB_TYPE have to be %s. ",
                 DbType.SQLITE,
             )
@@ -207,6 +207,8 @@ class DatabaseConfig:   # pylint: disable=R0903
 
         :param settings: The application settings containing the database configuration.
         :type settings: Settings
+
+        :raises SQLAlchemyError: If the database engine cannot be created.
         """
         self.settings = settings
         self.engine = self._create_engine()
@@ -226,6 +228,7 @@ class DatabaseConfig:   # pylint: disable=R0903
 
         :raises SQLAlchemyError: If there is an error during the initialization of the database.
         """
+        from api.common.db_objects.file_import import FileImport  # pylint: disable=C0415
         from api.common.db_objects.geo_zones import GeographicZone  # pylint: disable=C0415
         from api.common.db_objects.geo_forged import (  # pylint: disable=C0415
             GeoForged,
@@ -246,6 +249,7 @@ class DatabaseConfig:   # pylint: disable=R0903
             if self.settings.DB_TYPE == DbType.POSTGRESQL:
                 connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
                 connection.execute(CreateSchema(self.settings.DB_SCHEMA, if_not_exists=True))
+            FileImport.metadata.create_all(connection, checkfirst=True)
             GeographicZone.metadata.create_all(connection, checkfirst=True)
             GeoForged.metadata.create_all(connection, checkfirst=True)
             GeoForgedItem.metadata.create_all(connection, checkfirst=True)
@@ -265,6 +269,8 @@ class DatabaseConfig:   # pylint: disable=R0903
 
         :return: The configured SQLAlchemy engine.
         :rtype: Engine
+
+        :raises SQLAlchemyError: If the database engine cannot be created or configured.
         """
         engine = create_engine(self.settings.db_url)
 
@@ -284,9 +290,26 @@ class DatabaseConfig:   # pylint: disable=R0903
         :type engine: Engine
         :return: None
         :rtype: None
+
+        :raises sqlite3.Error: If spatial metadata cannot be initialized.
         """
         @event.listens_for(engine, "connect")
-        def load_spatialite(dbapi_connection: sqlite3.Connection, _connection_record: Any):
+        def load_spatialite(
+            dbapi_connection: sqlite3.Connection,
+            _connection_record: Any,
+        ) -> None:
+            """Load SpatiaLite and initialize spatial metadata for a connection.
+
+            :param dbapi_connection: Newly opened SQLite connection.
+            :type dbapi_connection: sqlite3.Connection
+            :param _connection_record: SQLAlchemy connection-pool record.
+            :type _connection_record: Any
+
+            :return: None.
+            :rtype: None
+
+            :raises sqlite3.Error: If spatial metadata cannot be initialized.
+            """
             dbapi_connection.enable_load_extension(True)
             try:
                 dbapi_connection.load_extension("mod_spatialite")

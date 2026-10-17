@@ -11,6 +11,7 @@ Le fichier `zones.toml` définit les jeux Natural Earth et les précisions utili
   - [Utiliser la Textual UI (en console plein écran)](#utiliser-la-textual-ui-en-console-plein-écran)
   - [Utiliser le notebook Jupyter](#utiliser-le-notebook-jupyter)
   - [Export et chemins de sortie](#export-et-chemins-de-sortie)
+  - [Réimplantation des sources et YAML](#réimplantation-des-sources-et-yaml)
 
 ## Fichier et interfaces
 
@@ -113,3 +114,13 @@ PYTHONPATH=scripts python -m zones_maker.main \
 ```
 
 Les chemins du notebook sont définis dans sa cellule d’initialisation : catalogue `src/naturalearth.json`, données `tmp` et fichier de sortie `src/zones.toml`. Modifiez-les dans cette cellule si vous utilisez une autre organisation.
+
+## Réimplantation des sources et YAML
+
+Au démarrage, chaque jeu et chaque précision de `zones.toml` sont enregistrés dans un manifeste `FileImport`. Celui-ci conserve l’URL de base, la famille, le nom, la précision, le lien ainsi que le mapping des colonnes et des classes. Les zones importées sont associées à ce manifeste. Une configuration déjà présente en base est réutilisée sans modifier ni dupliquer ses zones.
+
+Le YAML de définition d’une zone embarque ces manifestes dans `sources`. Chaque opération référence l’alias du manifeste et le code/nom de la zone source ; l’ID SQL local n’est pas utilisé dans ce format. À l’import, le manifeste doit exister en base et la correspondance code/nom doit être unique. Les sources absentes ou ambiguës sont refusées. Les anciens YAML qui utilisent uniquement `source_id` sont rejetés, car ils ne désignent pas une source portable. Les snapshots complets suivent un format de restauration distinct et exigent toujours que les sources référencées existent dans la base cible.
+
+Cette portabilité s’applique aux zones créées au démarrage à partir de `zones.toml`. Le parcours d’ajout TOML depuis l’administration ne crée pas encore de manifeste `FileImport` ; les YAML des zones issues de ce parcours utilisent donc toujours des identifiants locaux.
+
+L’identité d’un manifeste dépend de sa configuration normalisée (URL, famille, nom, précision, lien et mapping), et non du contenu téléchargé. Natural Earth peut remplacer une archive à la même URL sans que l’application détecte ce changement ; une nouvelle base peut alors recevoir des géométries différentes. Les archives téléchargées ne sont pas conservées. La réimplantation est donc idempotente pour une configuration déjà présente dans la même base, mais ne garantit pas une reproduction bit à bit des données distantes dans le temps.

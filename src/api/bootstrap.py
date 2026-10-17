@@ -1,4 +1,4 @@
-"""Module of initial initialization of the database before the API starts.
+"""Initialize the database and import initial geographic sources.
 
 .. functions::
     - `create_database`: Creates the missing database objects.
@@ -10,6 +10,7 @@
 """
 from __future__ import annotations
 
+import logging
 import sys
 
 from auth.manager import AuthManager
@@ -17,48 +18,65 @@ from .config import DatabaseSettings, FlaskSettings
 from .config.c_databases import DatabaseConfig
 from .common.datas import DataImporter, DataInjecter
 
+LOGGER = logging.getLogger(__name__)
+
 
 def create_database() -> None:
-    """Creates the missing database objects.
+    """Create missing database objects and initialize authentication data.
 
     :return: None
     :rtype: None
+
+    :raises SQLAlchemyError: If database or authentication initialization fails.
     """
-    database = DatabaseConfig(DatabaseSettings())
+    database: DatabaseConfig | None = None
     try:
+        database = DatabaseConfig(DatabaseSettings())
         database.initialize()
         AuthManager.initialize_database(database.session, FlaskSettings())
+    except Exception:
+        LOGGER.exception("Database initialization failed.")
+        raise
     finally:
-        database.session.remove()
-        database.engine.dispose()
+        if database is not None:
+            database.session.remove()
+            database.engine.dispose()
 
 def import_datas() -> None:
-    """Imports the initial data into the database.
+    """Download and import configured geographic source data.
 
     :return: None
     :rtype: None
+
+    :raises Exception: If a source download or import fails.
     """
-    data_importer = DataImporter()
-    files_list = data_importer.download_files().list_downloaded_files()
-    data_injecter = DataInjecter(files_list)
-    data_injecter.inject_geo_zones()
-    data_importer.clear_downloaded_files()
+    try:
+        data_importer = DataImporter()
+        files_list = data_importer.download_files().list_downloaded_files()
+        data_injecter = DataInjecter(files_list, data_importer.data_themes)
+        data_injecter.inject_geo_zones()
+        data_importer.clear_downloaded_files()
+    except Exception:
+        LOGGER.exception("Initial geographic source import failed.")
+        raise
 
 def main() -> None:
-    """Initializes the database before the API starts.
+    """Initialize the database before the API starts.
 
     :return: None
     :rtype: None
+
+    :raises Exception: If database setup or initial source import fails.
     """
-    sys.stdout.write("Initialisation de la base de données...\n")
+    sys.stdout.write("Initializing database...\n")
     sys.stdout.flush()
     create_database()
-    sys.stdout.write("Base de données initialisée.\n")
+    sys.stdout.write("Database initialized.\n")
     sys.stdout.flush()
-    sys.stdout.write("Importation des données initiales...\n")
+    sys.stdout.write("Importing initial geographic data...\n")
     sys.stdout.flush()
     import_datas()
-    sys.stdout.write("Données initiales importées.\n")
+    sys.stdout.write("Initial geographic data imported.\n")
     sys.stdout.flush()
 
 

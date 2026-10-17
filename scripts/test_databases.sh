@@ -9,6 +9,41 @@ set -uo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+REPORT=false
+while (($# > 0)); do
+    case "$1" in
+        --report)
+            if (($# < 2)); then
+                printf 'Usage : %s [--report true|false]\n' "${BASH_SOURCE[0]}" >&2
+                exit 2
+            fi
+            report_value="$2"
+            shift 2
+            ;;
+        --report=*)
+            report_value="${1#*=}"
+            shift
+            ;;
+        --help|-h)
+            printf 'Usage : %s [--report true|false]\n' "${BASH_SOURCE[0]}"
+            exit 0
+            ;;
+        *)
+            printf 'Argument inconnu : %s\nUsage : %s [--report true|false]\n' \
+                "$1" "${BASH_SOURCE[0]}" >&2
+            exit 2
+            ;;
+    esac
+    case "$report_value" in
+        true|false) REPORT="$report_value" ;;
+        *)
+            printf 'Valeur invalide pour --report : %s (true ou false attendu).\n' \
+                "$report_value" >&2
+            exit 2
+            ;;
+    esac
+done
+
 PYTHON_BIN="${PYTHON:-$ROOT_DIR/.venv/bin/python}"
 if [[ ! -x "$PYTHON_BIN" ]]; then
     printf 'Interpréteur Python introuvable : %s\n' "$PYTHON_BIN" >&2
@@ -69,16 +104,48 @@ if ! "${COMPOSE_CMD[@]}" up -d postgres mysql mariadb; then
     FAILED=1
 fi
 
+REPORT_READY=0
+PYTEST_ARGS=(
+    -v
+    tests/test_data_pipeline.py
+    tests/test_database.py
+    tests/test_zones_maker.py
+    tests/test_auth.py
+    tests/test_front.py
+)
+if [[ "$REPORT" == "true" ]]; then
+    REPORT_TIMESTAMP="$(date '+%y-%m-%d_%H-%M')"
+    REPORT_XML="$ROOT_DIR/tests/reports/xml/${REPORT_TIMESTAMP}_tests-report.xml"
+    REPORT_MARKDOWN="$ROOT_DIR/tests/reports/${REPORT_TIMESTAMP}_tests-reports.md"
+    if mkdir -p "$ROOT_DIR/tests/reports/xml"; then
+        PYTEST_ARGS+=(--junitxml "$REPORT_XML")
+        REPORT_READY=1
+    else
+        printf 'Impossible de créer le dossier des rapports de test.\n' >&2
+        FAILED=1
+    fi
+fi
+
 printf 'Exécution des tests paramétrés par backend.\n'
-if PYTHONPATH="$ROOT_DIR/src:$ROOT_DIR/scripts" "$PYTHON_BIN" -m pytest -v \
-    tests/test_data_pipeline.py tests/test_database.py tests/test_zones_maker.py \
-    tests/test_auth.py; then
+if PYTHONPATH="$ROOT_DIR/src:$ROOT_DIR/scripts" "$PYTHON_BIN" -m pytest \
+    "${PYTEST_ARGS[@]}"; then
     printf 'Tous les tests pytest sont passés.\n'
 else
     pytest_status=$?
     printf 'Échec pytest (code %s). Les autres cas paramétrés ont tout de même été exécutés.\n' \
         "$pytest_status" >&2
     FAILED=1
+fi
+
+if [[ "$REPORT_READY" == "1" ]]; then
+    if "$PYTHON_BIN" "$ROOT_DIR/scripts/generate_test_report.py" \
+        "$REPORT_XML" "$REPORT_MARKDOWN" "$REPORT_TIMESTAMP"; then
+        printf 'Rapports générés : %s et %s.\n' \
+            "${REPORT_XML#"$ROOT_DIR/"}" "${REPORT_MARKDOWN#"$ROOT_DIR/"}"
+    else
+        printf 'Échec de la génération du rapport Markdown.\n' >&2
+        FAILED=1
+    fi
 fi
 
 if [[ "$FAILED" == "0" ]]; then

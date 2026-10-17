@@ -111,3 +111,13 @@ PYTHONPATH=scripts python -m zones_maker.main \
 ```
 
 The notebook paths are set in its initialization cell: the catalog is `src/naturalearth.json`, the data directory is `tmp`, and the output file is `src/zones.toml`. Change those paths there when using a different layout.
+
+## Reimplanting Sources and YAML
+
+At bootstrap, each dataset and precision from `zones.toml` is recorded as a `FileImport` manifest. It stores the base URL, data family, name, precision, link, and column/class mapping. Imported zones are linked to that manifest. A configuration already present in the database is reused without changing or duplicating its zones.
+
+A zone-definition YAML embeds these manifests under `sources`. Each operation refers to the manifest alias and the source zone's code/name; the local SQL ID is not used by this format. During import, the manifest must exist in the database and the code/name match must be unique. Missing or ambiguous sources are rejected. Older YAML files that use only `source_id` are rejected because they do not identify a portable source. Full snapshots use a separate restoration format and still require their referenced sources in the target database.
+
+This portability applies to zones created by the `zones.toml` bootstrap. The administrative TOML upload flow does not yet create a `FileImport` manifest; zones from that flow still use local IDs in their YAML definitions.
+
+A manifest's identity is derived from its normalized configuration (URL, family, name, precision, link, and mapping), not the downloaded content. Natural Earth can replace an archive at the same URL without the application detecting the change; a fresh database may then receive different geometries. Downloaded archives are not retained. Reimplantation is therefore idempotent for a configuration already present in the same database, but it does not guarantee bit-for-bit reproduction of remote data over time.

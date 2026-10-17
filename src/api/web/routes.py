@@ -32,6 +32,7 @@
 from __future__ import annotations
 
 from datetime import date
+import logging
 from typing import Any, cast
 
 from flask import (
@@ -84,6 +85,7 @@ web_bp = Blueprint(
     static_folder="static",
     static_url_path="/assets",
 )
+LOGGER = logging.getLogger(__name__)
 CAPABILITIES = {
     "catalogs:read": "VIEWER",
     "maps:read": "VIEWER",
@@ -164,7 +166,7 @@ def _record(identifier: int) -> GeoForged:
     :type identifier: int
     :return: GeoForged record.
     :rtype: GeoForged
-    :raises: 404 if the record is not found.
+    :raises werkzeug.exceptions.NotFound: If the record does not exist.
     """
     record = _database().get(GeoForged, identifier)
     if record is None:
@@ -203,7 +205,7 @@ def _definition() -> dict[str, Any]:
 
     :return: Dictionary containing the definition of the GeoForged record.
     :rtype: dict[str, Any]
-    :raises: ValueError if the number of source IDs and operations do not match.
+    :raises ValueError: If the number of source IDs and operations do not match.
     """
     source_ids = request.form.getlist("source_id")
     operations = request.form.getlist("operation")
@@ -248,6 +250,15 @@ def web_error(error: HTTPException) -> tuple[str, int]:
     :return: Rendered error page and HTTP status code.
     :rtype: tuple[str, int]
     """
+    if (error.code or 500) >= 500:
+        LOGGER.error(
+            "HTTP server error on %s: %s",
+            request.path,
+            error.description,
+            exc_info=(type(error), error, error.__traceback__),
+        )
+    else:
+        LOGGER.warning("HTTP request rejected on %s: %s", request.path, error.description)
     return _page("error", "", error=error.description, status=error.code), error.code or 500
 
 
@@ -262,6 +273,12 @@ def invalid_input(error: Exception) -> tuple[str, int]:
     :rtype: tuple[str, int]
     """
     _database().rollback()
+    LOGGER.warning(
+        "Invalid request on %s: %s",
+        request.path,
+        error,
+        exc_info=(type(error), error, error.__traceback__),
+    )
     message = (
         "Preview has expired or is not valid."
         if isinstance(error, BadSignature)
@@ -275,14 +292,19 @@ def invalid_input(error: Exception) -> tuple[str, int]:
 
 
 @web_bp.errorhandler(IntegrityError)
-def conflicting_input(_error: IntegrityError) -> tuple[str, int]:
+def conflicting_input(error: IntegrityError) -> tuple[str, int]:
     """Return a conflict error without exposing SQL data.
 
-    :param _error: IntegrityError exception object.
-    :type _error: IntegrityError
+    :param error: IntegrityError exception object.
+    :type error: IntegrityError
     :return: Rendered error page and HTTP status code.
     :rtype: tuple[str, int]
     """
+    LOGGER.exception(
+        "Database integrity error on %s",
+        request.path,
+        exc_info=(type(error), error, error.__traceback__),
+    )
     _database().rollback()
     return render_template(
         _MESSAGE_PAGE,
@@ -518,10 +540,12 @@ def catalog_delete_preview(identifier: int) -> str:
 
     :return: HTML fragment previewing the deletion.
     :rtype: str
+
+    :raises ValueError: If the deletion scope is invalid.
     """
     scope = request.form.get("scope", "")
     if scope not in {"version", "catalog"}:
-        raise ValueError("La portée de suppression est invalide.")
+        raise ValueError("The deletion scope is invalid.")
     record = _record(identifier)
     if scope == "version":
         records = [record]
@@ -557,6 +581,8 @@ def delete_catalog_record(identifier: int) -> Response:
 
     :return: Response indicating the result of the deletion.
     :rtype: Response
+
+    :raises ValueError: If confirmation or the deletion scope is invalid.
     """
     if (
         request.form.get("confirmed") != "yes"
@@ -634,6 +660,8 @@ def import_yaml() -> Response:
 
     :return: Response indicating the result of the import operation.
     :rtype: Response
+
+    :raises ValueError: If the YAML is missing, invalid, or references unavailable sources.
     """
     upload = request.files.get("definition")
     if upload is None:
@@ -642,7 +670,12 @@ def import_yaml() -> Response:
         definition = yaml.safe_load(upload.read(1024 * 1024))
     except yaml.YAMLError as error:
         raise ValueError("The YAML file is invalid.") from error
-    record = save_zone(_database(), definition, _user())
+    record = save_zone(
+        _database(),
+        definition,
+        _user(),
+        require_manifest_sources=True,
+    )
     response = make_response("", 204)
     response.headers["HX-Redirect"] = url_for("web.maps", zone=record.id)
     return response
@@ -655,6 +688,9 @@ def restore_catalog_snapshot() -> Response:
 
     :return: Response indicating the result of the restoration.
     :rtype: Response
+
+    :raises ValueError: If the snapshot is missing, invalid, or conflicts with existing data.
+    :raises SQLAlchemyError: If the snapshot cannot be committed.
     """
     upload = request.files.get("snapshot")
     if upload is None:
@@ -695,6 +731,8 @@ def update_preferences() -> Response:
 
     :return: Response indicating the result of the update operation.
     :rtype: Response
+
+    :raises ValueError: If a submitted preference value is unsupported.
     """
     record = preferences(_database(), _user())
     if "navigation" in request.form:
@@ -743,6 +781,8 @@ def source_preview() -> str:
 
     :return: Rendered source preview fragment.
     :rtype: str
+
+    :raises ValueError: If the upload is invalid or a source download fails.
     """
     upload = request.files.get("configuration")
     if upload is None:
@@ -766,6 +806,8 @@ def source_apply() -> Response:
 
     :return: Response indicating the result of the apply operation.
     :rtype: Response
+
+    :raises ValueError: If the preview token is invalid or has expired.
     """
     apply_sources(
         _database(),
@@ -783,6 +825,8 @@ def _selection() -> list[GeographicZone]:
 
     :return: List of selected geographic zones.
     :rtype: list[GeographicZone]
+
+    :raises ValueError: If the selection is invalid or has changed.
     """
     try:
         identifiers = {int(value) for value in request.form.getlist("source_id")}
@@ -829,6 +873,8 @@ def delete_sources() -> Response:
 
     :return: Response indicating the result of the delete operation.
     :rtype: Response
+
+    :raises ValueError: If confirmation is missing or a selected source is in use.
     """
     if request.form.get("confirmed") != "yes":
         raise ValueError("Confirmation is required.")

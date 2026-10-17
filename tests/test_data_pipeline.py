@@ -1,4 +1,4 @@
-"""Tests du mapping, de l'import et de l'injection des zones."""
+"""Tests for geographic source mapping, import, and injection."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ import shapefile
 from geoalchemy2.elements import WKTElement
 from sqlalchemy import select
 from sqlalchemy.engine import make_url
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy.orm import configure_mappers
 
 from api.common.datas import injecter as injecter_module
@@ -23,6 +23,7 @@ from api.common.datas.injecter import AgregateZone, DataInjecter
 from api.common.datas.importer import DataImporter
 from api.common.datas.mapper import ZonesMapper
 from api.common.db_objects.geo_forged import GeoForgedItem
+from api.common.db_objects.file_import import FileImport
 from api.common.db_objects.geo_zones import GeographicZone
 from api.common.repositories import common as common_repo_module
 from api.config import DatabaseConfig, DatabaseSettings
@@ -43,7 +44,7 @@ RING = [(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]
 
 
 def shapefile_parts(properties: dict[str, str]) -> dict[str, bytes]:
-    """Crée les trois composants d'un shapefile polygonal en mémoire."""
+    """Create the three components of an in-memory polygon shapefile."""
     shp = BytesIO()
     shx = BytesIO()
     dbf = BytesIO()
@@ -62,7 +63,7 @@ def shapefile_parts(properties: dict[str, str]) -> dict[str, bytes]:
 
 
 def shapefile_archive(link: str, properties: dict[str, str]) -> bytes:
-    """Emballe un shapefile en mémoire sous le nom Natural Earth attendu."""
+    """Package an in-memory shapefile using the expected Natural Earth name."""
     base_name = f"ne_10m_{link}"
     buffer = BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -74,7 +75,7 @@ def shapefile_archive(link: str, properties: dict[str, str]) -> bytes:
 
 
 class FakeResponse:
-    """Réponse HTTP minimale pour les téléchargements simulés."""
+    """Minimal HTTP response used to simulate dataset downloads."""
 
     status_code = 200
 
@@ -82,31 +83,41 @@ class FakeResponse:
         self.content = content
 
     def raise_for_status(self) -> None:
-        """Ne fait rien, lève une exception si le statut HTTP est incorrect."""
+        """Do nothing for a successful simulated HTTP response."""
         return None
 
 
 class FakeRepository:
-    """Dépôt de test qui conserve les zones préparées par l'injecteur."""
+    """Test repository that records zones prepared by the importer."""
 
     def __init__(self) -> None:
         self.zones: list[GeographicZone] = []
         self.commit_count = 0
+        self.rollback_count = 0
+        self.commit_succeeds = True
 
     def add_geo_zone(self, zone: GeographicZone, commit: bool = True) -> GeographicZone:
-        """Ajoute une zone géographique au dépôt factice sans effectuer de commit."""
+        """Add a geographic zone without committing the fake transaction."""
         assert not commit
         self.zones.append(zone)
         return zone
 
     def commit(self) -> bool:
-        """Effectue un commit factice en incrémentant le compteur de commits."""
+        """Record a fake transaction commit."""
         self.commit_count += 1
+        if not self.commit_succeeds:
+            self.rollback()
+            return False
+        return True
+
+    def rollback(self) -> bool:
+        """Record a fake transaction rollback."""
+        self.rollback_count += 1
         return True
 
 
 def aggregate(source_name: str, properties: dict[str, str]) -> AgregateZone:
-    """Construit un agrégat à partir d'un enregistrement shapefile synthétique."""
+    """Build an aggregate from a synthetic shapefile record."""
     parts = shapefile_parts(properties)
     return AgregateZone(
         source_name=source_name,
@@ -117,7 +128,7 @@ def aggregate(source_name: str, properties: dict[str, str]) -> AgregateZone:
 
 
 def test_geo_forged_item_relationships_are_configured() -> None:
-    """Vérifie la cible de clé étrangère et la configuration des relations ORM."""
+    """Verify the foreign key target and ORM relationship configuration."""
     configure_mappers()
 
     foreign_key = next(iter(GeoForgedItem.__table__.c.geo_zone_id.foreign_keys))
@@ -125,7 +136,7 @@ def test_geo_forged_item_relationships_are_configured() -> None:
 
 
 def wait_for_database(database: DatabaseConfig) -> None:
-    """Attend au plus 60 secondes qu'une base externe accepte une connexion."""
+    """Wait up to 60 seconds for an external database to accept connections."""
     deadline = time.monotonic() + 60
     while True:
         try:
@@ -138,7 +149,7 @@ def wait_for_database(database: DatabaseConfig) -> None:
 
 
 def test_mapper_loads_fields_and_classes_for_each_key() -> None:
-    """Teste que le mapper charge correctement les champs et les classes pour chaque clé."""
+    """Verify that the mapper loads fields and classes for each mapping key."""
     mapper = ZonesMapper(str(ZONES_CONFIG))
 
     assert mapper.get_mapper("admin_0_countries") == {
@@ -266,7 +277,7 @@ def test_injecter_rejects_unknown_mapping_and_missing_source_class(
         lambda: [aggregate("ne_10m_unknown", COUNTRY)],
     )
 
-    with pytest.raises(ValueError, match="Aucun mapping trouvé"):
+    with pytest.raises(ValueError, match="No mapping was found"):
         data_injecter.inject_geo_zones()
 
     monkeypatch.setattr(
@@ -274,9 +285,37 @@ def test_injecter_rejects_unknown_mapping_and_missing_source_class(
         "_build_aggregates",
         lambda: [aggregate("ne_10m_lakes", {"name_en": "Test Lake", "ne_id": "lake-1"})],
     )
-    with pytest.raises(ValueError, match="Classe source absente"):
+    with pytest.raises(ValueError, match="The source class is missing"):
         data_injecter.inject_geo_zones()
     assert repository.commit_count == 0
+    assert repository.rollback_count == 2
+
+
+def test_injecter_does_not_repeat_repository_rollback_on_commit_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify that the importer reports a failed commit without rolling back twice."""
+    monkeypatch.setattr(injecter_module, "ZonesMapper", lambda: None)
+    repository = FakeRepository()
+    repository.commit_succeeds = False
+    data_injecter = DataInjecter.__new__(DataInjecter)
+    data_injecter.repo = repository    # type: ignore
+
+    def no_aggregates() -> list[AgregateZone]:
+        """Return an empty aggregate list for the commit-failure test."""
+        return []
+
+    monkeypatch.setattr(
+        data_injecter,
+        "_build_aggregates",
+        no_aggregates,
+    )
+
+    with pytest.raises(SQLAlchemyError, match="Failed to commit initial geographic sources"):
+        data_injecter.inject_geo_zones()
+
+    assert repository.commit_count == 1
+    assert repository.rollback_count == 1
 
 
 @pytest.mark.parametrize(
@@ -294,7 +333,7 @@ def test_full_injection_persists_zones(
     database_type: str,
     url_variable: str | None,
 ) -> None:
-    """Vérifie que l’injection complète persiste les zones dans chaque moteur configuré."""
+    """Verify that full injection persists zones in each configured database engine."""
     if database_type == "sqlite":
         settings = DatabaseSettings(
             EXTERNAL_DB=False,
@@ -303,7 +342,7 @@ def test_full_injection_persists_zones(
         )
     else:
         if url_variable is None or url_variable not in os.environ:
-            pytest.skip(f"{url_variable} non défini : base de test non démarrée")
+            pytest.skip(f"{url_variable} is not set; the test database is not running.")
         url = make_url(os.environ[url_variable])
         settings = DatabaseSettings(
             EXTERNAL_DB=True,
@@ -322,7 +361,7 @@ def test_full_injection_persists_zones(
     except OperationalError as error:
         database.engine.dispose()
         if "mod_spatialite" in str(error).lower():
-            pytest.skip("L'extension mod_spatialite n'est pas installée")
+            pytest.skip("The mod_spatialite extension is not installed.")
         raise
 
     monkeypatch.setattr(injecter_module, "DatabaseSettings", lambda: settings)
@@ -355,8 +394,10 @@ def test_full_injection_persists_zones(
     monkeypatch.setattr(importer_module.requests, "get", fake_get)
 
     try:
-        downloaded_files = DataImporter(str(ZONES_CONFIG)).download_files(tmp_path)
-        data_injecter = DataInjecter(downloaded_files.list_downloaded_files(tmp_path))
+        importer = DataImporter(str(ZONES_CONFIG))
+        downloaded_files = importer.download_files(tmp_path)
+        paths = downloaded_files.list_downloaded_files(tmp_path)
+        data_injecter = DataInjecter(paths, importer.data_themes)
         data_injecter._build_aggregates() # type: ignore # pylint: disable=W0212
         data_injecter.inject_geo_zones()
 
@@ -369,6 +410,20 @@ def test_full_injection_persists_zones(
             ("Pays", country_properties["ISO_A3"], "Testland"),
             ("Lac", lake_properties["ne_id"], "Test Lake"),
         }
+        imports = list(database.session.scalars(select(FileImport)))
+        assert len(imports) == 2
+        countries = next(item for item in imports if item.link == "admin_0_countries")
+        assert countries.data_family == "cultural"
+        assert countries.name == "Countries"
+        assert countries.precision == "high"
+        assert countries.mapping["classes"] == {"Admin-0 country": "Pays"}
+
+        count_before = len(list(database.session.scalars(select(GeographicZone.id))))
+        data_injecter.inject_geo_zones()
+        assert len(list(database.session.scalars(select(GeographicZone.id)))) == count_before
+        assert database.session.scalar(select(GeographicZone.file_import_id).where(
+            GeographicZone.code == country_properties["ISO_A3"],
+        )) == countries.id
     finally:
         database.session.remove()
         database.engine.dispose()

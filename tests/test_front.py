@@ -18,6 +18,7 @@ import pytest
 import yaml
 
 from api.common.db_objects.geo_forged import GeoForged, GeoForgedItem
+from api.common.db_objects.file_import import FileImport, file_import_config_key
 from api.common.db_objects.geo_zones import GeographicZone
 from api.common.db_objects.users import UserPreferences
 from api.config import DatabaseConfig, DatabaseSettings, FlaskSettings
@@ -421,11 +422,45 @@ def test_toml_preview_only_adds_after_validation(front: Any) -> None:
     assert _post(client, "/sources/apply", {"token": parser.token}).status_code == 422
 
 
-def test_yaml_roundtrip_and_invalid_input(front: Any) -> None:
+def test_yaml_roundtrip_and_invalid_input(
+    front: Any,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """Une definition exportee est reimportable et une saisie invalide est refusee."""
-    client = front[2]
+    _, database, client = front
+    configuration = {
+        "source_path": "https://naturalearth.s3.amazonaws.com",
+        "data_family": "cultural",
+        "name": "Countries",
+        "precision": "high",
+        "link": "admin_0_countries",
+        "mapping": {
+            "name": "NAME_LONG",
+            "code": "ISO_A3",
+            "geometry": "geometry",
+            "class": "featurecla",
+            "classes": {"Admin-0 country": "Pays"},
+        },
+    }
+    file_import = FileImport(
+        config_key=file_import_config_key(configuration),
+        **configuration,
+    )
+    database.session.add(file_import)
+    for source_id in (1, 2):
+        database.session.get(GeographicZone, source_id).file_import = file_import
+    database.session.commit()
+
     _post(client, "/builder/save", _definition(), "EDITOR")
     content = client.get("/catalogs/1/export/yaml").data
+    exported = yaml.safe_load(content)
+    assert exported["sources"][0]["mapping"] == configuration["mapping"]
+    assert [operation["source"] for operation in exported["operations"]] == [0, 0]
+    assert [(operation["code"], operation["name"]) for operation in exported["operations"]] == [
+        ("FR", "France"),
+        ("PAR", "Paris"),
+    ]
+    assert all("source_id" not in operation for operation in exported["operations"])
     response = _post(
         client,
         "/catalogs/import",
@@ -433,6 +468,41 @@ def test_yaml_roundtrip_and_invalid_input(front: Any) -> None:
          "EDITOR",
     )
     assert response.status_code == 204
+    version_count = database.session.scalar(select(count()).select_from(GeoForged))
+    legacy_yaml = yaml.safe_dump({
+        "code": "LEGACY",
+        "name": "Legacy definition",
+        "description": "",
+        "from_date": "2026-10-17",
+        "operations": [{"operation": "UNION", "source_id": 1}],
+    }).encode()
+    legacy_response = _post(
+        client,
+        "/catalogs/import",
+        {"definition": (BytesIO(legacy_yaml), "legacy.yaml")},
+        "EDITOR",
+    )
+    assert legacy_response.status_code == 422
+    assert database.session.scalar(select(count()).select_from(GeoForged)) == version_count
+    assert "Every YAML operation must reference a source manifest" in caplog.text
+    duplicate = GeographicZone(
+        kind="Pays",
+        code="FR",
+        name="France",
+        boundary=database.session.get(GeographicZone, 1).boundary,
+        file_import=file_import,
+    )
+    database.session.add(duplicate)
+    database.session.commit()
+    version_count = database.session.scalar(select(count()).select_from(GeoForged))
+    ambiguous = _post(
+        client,
+        "/catalogs/import",
+        {"definition": (BytesIO(content), "ambiguous.yaml")},
+        "EDITOR",
+    )
+    assert ambiguous.status_code == 422
+    assert database.session.scalar(select(count()).select_from(GeoForged)) == version_count
     assert _post(
         client,
         "/builder/preview",
