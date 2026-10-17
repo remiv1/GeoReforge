@@ -67,3 +67,9 @@ Le proxy TLS doit définir ou remplacer `X-Forwarded-Proto` par le protocole ré
 La protection CSRF de Flask est active pour les requêtes POST. Appelez d'abord `GET /auth/csrf`, puis envoyez le jeton retourné dans l'en-tête `X-CSRFToken` avec la requête de connexion ou de déconnexion.
 
 Les erreurs d'authentification, d'autorisation et de CSRF sont renvoyées en JSON. Toutes les réponses sous `/auth/`, y compris les erreurs et celles qui posent ou suppriment un cookie, utilisent `Cache-Control: no-store`.
+
+## Administration des catalogues de zones
+
+Les administrateurs peuvent supprimer une version construite ou toutes les versions d'un catalogue. La suppression est définitive : l'écran de confirmation propose un snapshot YAML à télécharger et exige une confirmation explicite avant l'opération. Les sources géographiques ne sont pas supprimées.
+
+Le YAML d'une version contient sa définition importable ainsi qu'un snapshot complet des données `GeoForged` et `GeoForgedItem`. L'export du catalogue regroupe toutes ses versions. Un administrateur peut restaurer un snapshot depuis le catalogue ; les sources référencées doivent encore exister dans la base cible. Les identifiants techniques des lignes sont régénérés à la restauration. Le compteur de version est conservé après suppression pour éviter de réutiliser un numéro.

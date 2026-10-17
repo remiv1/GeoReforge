@@ -55,6 +55,19 @@
             <button>{{ icon('upload') }} Importer</button>
         </form>
         {% endif %}
+        {% if can('catalogs:manage') %}
+        <form class="file-form"
+            hx-post="{{ url_for('web.restore_catalog_snapshot') }}"
+            hx-encoding="multipart/form-data"
+            hx-target="#catalog-feedback"
+            data-capability="catalogs:manage">
+            {{ csrf() }}
+            <label class="file-label">Snapshot GeoReforge
+                <input type="file" name="snapshot" accept=".yaml,.yml" required>
+            </label>
+            <button>{{ icon('rotate-ccw') }} Restaurer</button>
+        </form>
+        {% endif %}
     </div>
     <div id="catalog-feedback" aria-live="polite"></div>
     {% if records %}
@@ -108,6 +121,23 @@
                         aria-label="Détails de {{ record.name }}">
                         {{ icon('panel-right-open') }}
                     </button>
+                    {% if can('catalogs:manage') %}
+                    <form
+                        class="table-action"
+                        hx-post="{{ url_for('web.catalog_delete_preview', identifier=record.id) }}"
+                        hx-target="#catalog-feedback"
+                        data-capability="catalogs:manage">
+                        {{ csrf() }}
+                        <input type="hidden" name="scope" value="catalog">
+                        <button
+                            type="submit"
+                            class="icon-button danger"
+                            title="Supprimer toutes les versions"
+                            aria-label="Supprimer le catalogue {{ record.name }}">
+                            {{ icon('trash-2') }}
+                        </button>
+                    </form>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

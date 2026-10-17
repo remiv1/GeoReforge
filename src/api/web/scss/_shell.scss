@@ -168,9 +168,15 @@ details > summary {
 }
 .version-list {
     display: grid;
-    a {
+}
+.version-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--line);
+    > a {
+        flex: 1;
         padding: 10px 0;
-        border-bottom: 1px solid var(--line);
     }
 }
 .export-list {

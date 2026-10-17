@@ -1,0 +1,50 @@
+{% from 'macros.html' import icon, csrf with context %}
+<section class="confirmation destructive" data-capability="catalogs:manage">
+    <h2>Confirmer la suppression définitive</h2>
+    <p>
+        {% if scope == 'version' %}
+            Cette action supprimera la version v{{ records[0].version }} de {{ records[0].code }}.
+        {% else %}
+            Cette action supprimera {{ records|length }} version(s) du catalogue {{ records[0].code }}.
+        {% endif %}
+        Les sources géographiques ne seront pas supprimées.
+    </p>
+    <ul>
+        {% for record in records %}
+            <li>{{ record.code }} · v{{ record.version }} · {{ record.name }} · {{ record.author }}</li>
+        {% endfor %}
+    </ul>
+    <a class="button" href="{{ export_url }}">
+        {{ icon('download') }} Télécharger le snapshot YAML
+    </a>
+    <form
+        hx-post="{{ url_for('web.delete_catalog_record', identifier=identifier) }}"
+        hx-target="{% if scope == 'version' %}#panel-root{% else %}#catalog-feedback{% endif %}">
+        {{ csrf() }}
+        <input type="hidden" name="scope" value="{{ scope }}">
+        <input type="hidden" name="confirmed" value="yes">
+        <label class="confirmation-check">
+            <input type="checkbox" name="backup_confirmed" value="yes" required>
+            J’ai téléchargé le snapshot YAML.
+        </label>
+        <div class="form-actions">
+            {% if cancel_url %}
+                <button
+                    type="button"
+                    hx-get="{{ cancel_url }}"
+                    hx-target="#panel-root">
+                    {{ icon('x') }} Annuler
+                </button>
+            {% else %}
+                <button
+                    type="button"
+                    data-cancel-confirm="#catalog-feedback">
+                    {{ icon('x') }} Annuler
+                </button>
+            {% endif %}
+            <button class="danger">
+                {{ icon('trash-2') }} Supprimer définitivement
+            </button>
+        </div>
+    </form>
+</section>

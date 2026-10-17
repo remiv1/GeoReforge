@@ -112,6 +112,14 @@
                         {% endfor %}
                     {% endif %}
                 </ol>
+                <div class="form-actions">
+                    <button id="preview-button" type="button" class="button">
+                        {{ icon('eye') }} Aperçu
+                    </button>
+                    <button type="submit" class="button primary">
+                        {{ icon('save') }} {{ 'Créer une version' if record else 'Créer la zone' }}
+                    </button>
+                </div>
             </form>
             <div id="builder-feedback" aria-live="polite"></div>
             <div class="source-search">

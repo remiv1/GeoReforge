@@ -227,7 +227,11 @@ class DatabaseConfig:   # pylint: disable=R0903
         :raises SQLAlchemyError: If there is an error during the initialization of the database.
         """
         from api.common.db_objects.geo_zones import GeographicZone  # pylint: disable=C0415
-        from api.common.db_objects.geo_forged import GeoForged, GeoForgedItem  # pylint: disable=C0415
+        from api.common.db_objects.geo_forged import (  # pylint: disable=C0415
+            GeoForged,
+            GeoForgedItem,
+            GeoForgedVersionSequence,
+        )
         from api.common.db_objects.users import (   # pylint: disable=C0415
             Group,
             User,
@@ -245,6 +249,7 @@ class DatabaseConfig:   # pylint: disable=R0903
             GeographicZone.metadata.create_all(connection, checkfirst=True)
             GeoForged.metadata.create_all(connection, checkfirst=True)
             GeoForgedItem.metadata.create_all(connection, checkfirst=True)
+            GeoForgedVersionSequence.metadata.create_all(connection, checkfirst=True)
             User.metadata.create_all(connection, checkfirst=True)
             Group.metadata.create_all(connection, checkfirst=True)
             UserGroup.metadata.create_all(connection, checkfirst=True)

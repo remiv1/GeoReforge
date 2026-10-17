@@ -207,3 +207,32 @@ class GeoForgedItem(Base):
         back_populates="geo_forged_items",
         foreign_keys=[geo_zone_id],
     )
+
+
+class GeoForgedVersionSequence(Base):
+    """Track the highest version number ever assigned to each zone code.
+    
+    :param code: Zone code.
+    :type code: str
+    :param last_version: Highest version number assigned to the zone code.
+    :type last_version: int
+
+    .. table:: `geo_forged_version_sequence`
+
+    .. module_author:: Rémi Verschuur <rverschuur@audit-io.fr>
+    .. version:: 1.0
+    """
+    __tablename__ = "geo_forged_version_sequence"
+    __table_args__ = TABLE_ARGS
+
+    code: Mapped[str] = mapped_column(
+        String(50),
+        primary_key=True,
+        comment="Zone code",
+    )
+    last_version: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        comment="Highest version number assigned to the zone code",
+    )

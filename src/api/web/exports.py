@@ -19,6 +19,7 @@ from typing import Any, cast
 
 import fiona
 from fiona.io import MemoryFile
+from shapely import to_wkt
 from shapely.geometry.base import BaseGeometry
 import yaml
 
@@ -70,6 +71,80 @@ def vector_archive(geometry: BaseGeometry, code: str, driver: str) -> bytes:
         return output.getvalue()
 
 
+def _snapshot_record(record: GeoForged) -> dict[str, Any]:
+    """Expose the persisted fields necessary for restoring a version.
+
+    :param record: Constructed GeoForged version to be serialized.
+    :type record: GeoForged
+
+    :return: Dictionary containing all the necessary fields.
+    :rtype: dict[str, Any]
+    """
+    return {
+        "id": record.id,
+        "code": record.code,
+        "name": record.name,
+        "description": record.description or "",
+        "version": record.version,
+        "from_date": record.from_date.isoformat(),
+        "author": record.author,
+        "geometry": to_wkt(read_geometry(record.geometry), rounding_precision=-1),
+        "items": [
+            {
+                "id": item.id,
+                "geo_forged_id": item.geo_forged_id,
+                "geo_zone_id": item.geo_zone_id,
+                "rank": item.rank,
+                "operation": item.operation,
+            }
+            for item in sorted(record.items, key=lambda item: item.rank)
+        ],
+    }
+
+
+def _snapshot(records: list[GeoForged], kind: str) -> dict[str, Any]:
+    """Construct the versioned envelope of the GeoReforge snapshot.
+
+    :param records: Constructed versions to include in the snapshot.
+    :type records: list[GeoForged]
+    :param kind: Type of snapshot, "catalog" or "version".
+    :type kind: str
+
+    :return: Dictionary representing the snapshot envelope.
+    :rtype: dict[str, Any]
+    """
+    return {
+        "format": "georeforge-snapshot",
+        "format_version": 1,
+        "kind": kind,
+        "code": records[0].code,
+        "records": [_snapshot_record(record) for record in records],
+    }
+
+
+def export_catalog_snapshot(records: list[GeoForged]) -> tuple[bytes, str, str]:
+    """Export all versions of a catalog into a faithful YAML snapshot.
+
+    :param records: Constructed versions of the catalog to be exported.
+    :type records: list[GeoForged]
+
+    :return: YAML content, MIME type, and file extension.
+    :rtype: tuple[bytes, str, str]
+    """
+    if not records:
+        raise ValueError("The catalog contains no versions.")
+    ordered = sorted(records, key=lambda record: record.version)
+    return (
+        yaml.safe_dump(
+            {"_georeforge_snapshot": _snapshot(ordered, "catalog")},
+            allow_unicode=True,
+            sort_keys=False,
+        ).encode(),
+        "application/yaml",
+        "yaml",
+    )
+
+
 def export_zone(record: GeoForged, format_name: str) -> tuple[bytes, str, str]:
     """Exports a version without accessing a destination database.
 
@@ -84,8 +159,10 @@ def export_zone(record: GeoForged, format_name: str) -> tuple[bytes, str, str]:
     :raises ValueError: If the format is unknown.
     """
     if format_name == "yaml":
+        definition = zone_definition(record)
+        definition["_georeforge_snapshot"] = _snapshot([record], "version")
         return yaml.safe_dump(
-            zone_definition(record),
+            definition,
             allow_unicode=True,
             sort_keys=False,
         ).encode(), "application/yaml", "yaml"

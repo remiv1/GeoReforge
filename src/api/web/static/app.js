@@ -131,7 +131,9 @@
     if (!target) return;
     notify('');
     if (target.matches('[data-close-panel]')) closePanel();
-    if (target.matches('[data-cancel-confirm]')) query('#source-confirm').replaceChildren();
+    if (target.matches('[data-cancel-confirm]')) {
+      query(target.dataset.cancelConfirm || '#source-confirm')?.replaceChildren();
+    }
     if (target.matches('[data-add-source]')) {
       const fragment = query('#operation-template').content.cloneNode(true);
       query('[name="source_id"]', fragment).value = target.dataset.addSource;

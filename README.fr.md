@@ -42,6 +42,7 @@ Les référentiels géographiques fournissent des pays, des régions et des fron
     - [Assistant local de configuration](#assistant-local-de-configuration)
     - [RUN](#run)
     - [BUILD](#build)
+    - [Interface Web](#interface-web)
     - [Intégration dans un compose](#intégration-dans-un-compose)
   - [Gestion des accès](#gestion-des-accès)
 
@@ -202,7 +203,7 @@ Pour utiliser une base externe, consultez le [guide de préparation des bases de
 Pour définir les zones à télécharger, montez en volume le fichier de configuration `zones.toml` dans le conteneur à l'emplacement `/etc/app/zones.toml` de la manière suivante :
 
 ```sh
-docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/zones.toml:/etc/app/zones.toml georeforge:latest
+docker run --rm -v "$PWD/database:/var/lib/app:rw,Z,U" -v "$PWD/src/zones.toml:/etc/app/zones.toml:ro:Z" georeforge:latest
 ```
 
 Pour créer le fichier `zones.toml`, suivez le guide [zones.toml](doc/Zones.fr.md).

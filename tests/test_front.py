@@ -15,6 +15,7 @@ from shapely.geometry import MultiPolygon, box
 from sqlalchemy import select
 from sqlalchemy.sql.functions import count
 import pytest
+import yaml
 
 from api.common.db_objects.geo_forged import GeoForged, GeoForgedItem
 from api.common.db_objects.geo_zones import GeographicZone
@@ -98,8 +99,8 @@ def _definition() -> dict[str, Any]:
 
 @pytest.mark.parametrize(
         "role, forbidden", [
-            ("VIEWER", ["zones:edit", "sources:manage", "users:manage"]),
-            ("EDITOR", ["sources:manage", "users:manage"]),
+            ("VIEWER", ["zones:edit", "catalogs:manage", "sources:manage", "users:manage"]),
+            ("EDITOR", ["catalogs:manage", "sources:manage", "users:manage"]),
         ]
 )
 @pytest.mark.parametrize("fragment", [False, True])
@@ -172,6 +173,19 @@ def test_preview_does_not_save_and_versions_are_immutable(front: Any) -> None:
     assert len(client.get("/maps/options").json) == 2
 
 
+def test_builder_exposes_preview_and_create_actions(front: Any) -> None:
+    """Le constructeur expose les actions liees aux routes d'apercu et de creation."""
+    client = front[2]
+    response = client.get(
+        "/builder",
+        headers={"X-Test-Role": "EDITOR", "HX-Request": "true"},
+    )
+    assert response.status_code == 200
+    assert 'id="preview-button"' in response.text
+    assert 'type="submit"' in response.text
+    assert "Créer la zone" in response.text
+
+
 @pytest.mark.parametrize(
     "format_name, signature", [
         ("yaml", b"code:"),
@@ -188,6 +202,168 @@ def test_viewer_exports_versions(front: Any, format_name: str, signature: bytes)
     response = client.get(f"/catalogs/1/export/{format_name}", headers={"X-Test-Role": "VIEWER"})
     assert response.status_code == 200
     assert response.data.startswith(signature)
+
+
+def test_admin_can_delete_a_version_after_snapshot(front: Any) -> None:
+    """La suppression d'une version exige le snapshot et ne réutilise pas son numéro."""
+    _, database, client = front
+    _post(client, "/builder/save", _definition(), "EDITOR")
+    _post(client, "/builder/save", _definition(), "EDITOR")
+
+    detail = client.get(
+        "/catalogs/2",
+        headers={"X-Test-Role": "ADMIN", "HX-Request": "true"},
+    )
+    assert detail.status_code == 200
+    assert "Supprimer cette version" in detail.text
+    assert _post(
+        client,
+        "/catalogs/2/delete-preview",
+        {"scope": "version"},
+        "EDITOR",
+    ).status_code == 403
+    preview = _post(
+        client,
+        "/catalogs/2/delete-preview",
+        {"scope": "version"},
+    )
+    assert preview.status_code == 200
+    assert "Télécharger le snapshot YAML" in preview.text
+    snapshot = yaml.safe_load(client.get("/catalogs/2/export/yaml").data)
+    assert snapshot["_georeforge_snapshot"]["records"][0]["version"] == 2
+    assert len(snapshot["_georeforge_snapshot"]["records"][0]["items"]) == 2
+
+    assert _post(
+        client,
+        "/catalogs/2/delete",
+        {"scope": "version", "confirmed": "yes"},
+    ).status_code == 422
+    assert _post(
+        client,
+        "/catalogs/2/delete",
+        {
+            "scope": "version",
+            "confirmed": "yes",
+            "backup_confirmed": "yes",
+        },
+        "EDITOR",
+    ).status_code == 403
+    deleted = _post(
+        client,
+        "/catalogs/2/delete",
+        {
+            "scope": "version",
+            "confirmed": "yes",
+            "backup_confirmed": "yes",
+        },
+    )
+    assert deleted.status_code == 204
+    assert database.session.get(GeoForged, 2) is None
+    assert database.session.scalar(select(count()).select_from(GeoForgedItem)) == 2
+
+    assert _post(client, "/builder/save", _definition(), "EDITOR").status_code == 204
+    assert list(database.session.scalars(
+        select(GeoForged.version).order_by(GeoForged.version)
+    )) == [1, 3]
+    restored = _post(
+        client,
+        "/catalogs/snapshots/restore",
+        {"snapshot": (BytesIO(yaml.safe_dump(snapshot).encode()), "version.yaml")},
+    )
+    assert restored.status_code == 204
+    assert database.session.scalar(
+        select(GeoForged.version).where(GeoForged.version == 2)
+    ) == 2
+    assert _post(client, "/builder/save", _definition(), "EDITOR").status_code == 204
+    assert list(database.session.scalars(
+        select(GeoForged.version).order_by(GeoForged.version)
+    )) == [1, 2, 3, 4]
+
+
+def test_catalog_snapshot_delete_and_restore_are_faithful_and_atomic(front: Any) -> None:
+    """Un snapshot complet restaure les versions, géométries, auteurs et opérations."""
+    _, database, client = front
+    _post(client, "/builder/save", _definition(), "EDITOR")
+    _post(client, "/builder/save", _definition(), "EDITOR")
+    snapshot_response = client.get(
+        "/catalogs/1/export/catalog-yaml",
+        headers={"X-Test-Role": "VIEWER"},
+    )
+    assert snapshot_response.status_code == 200
+    snapshot = yaml.safe_load(snapshot_response.data)
+    snapshot_data = snapshot["_georeforge_snapshot"]
+    assert snapshot_data["kind"] == "catalog"
+    assert [record["version"] for record in snapshot_data["records"]] == [1, 2]
+    assert snapshot_data["records"][0]["author"] == "editor"
+    assert len(snapshot_data["records"][0]["items"]) == 2
+    admin_catalogs = client.get(
+        "/catalogs",
+        headers={"X-Test-Role": "ADMIN", "HX-Request": "true"},
+    )
+    assert "Supprimer toutes les versions" in admin_catalogs.text
+    assert "Snapshot GeoReforge" in admin_catalogs.text
+    assert _post(
+        client,
+        "/catalogs/snapshots/restore",
+        {"snapshot": (BytesIO(snapshot_response.data), "catalog.yaml")},
+        "EDITOR",
+    ).status_code == 403
+
+    confirmation = _post(
+        client,
+        "/catalogs/1/delete-preview",
+        {"scope": "catalog"},
+    )
+    assert confirmation.status_code == 200
+    assert "2 version(s)" in confirmation.text
+    assert _post(
+        client,
+        "/catalogs/1/delete-preview",
+        {"scope": "catalog"},
+        "EDITOR",
+    ).status_code == 403
+    deleted = _post(
+        client,
+        "/catalogs/1/delete",
+        {
+            "scope": "catalog",
+            "confirmed": "yes",
+            "backup_confirmed": "yes",
+        },
+    )
+    assert deleted.status_code == 204
+    assert database.session.scalar(select(count()).select_from(GeoForged)) == 0
+    assert database.session.scalar(select(count()).select_from(GeoForgedItem)) == 0
+    assert database.session.scalar(select(count()).select_from(GeographicZone)) == 3
+
+    invalid_snapshot = yaml.safe_load(snapshot_response.data)
+    invalid_snapshot["_georeforge_snapshot"]["records"][1]["items"][0]["geo_zone_id"] = 999
+    rejected = _post(
+        client,
+        "/catalogs/snapshots/restore",
+        {"snapshot": (BytesIO(yaml.safe_dump(invalid_snapshot).encode()), "bad.yaml")},
+    )
+    assert rejected.status_code == 422
+    assert database.session.scalar(select(count()).select_from(GeoForged)) == 0
+
+    restored = _post(
+        client,
+        "/catalogs/snapshots/restore",
+        {"snapshot": (BytesIO(snapshot_response.data), "catalog.yaml")},
+    )
+    assert restored.status_code == 204
+    records = list(database.session.scalars(
+        select(GeoForged).order_by(GeoForged.version)
+    ))
+    assert [(record.version, record.author) for record in records] == [
+        (1, "editor"),
+        (2, "editor"),
+    ]
+    assert [len(record.items) for record in records] == [2, 2]
+    assert _post(client, "/builder/save", _definition(), "EDITOR").status_code == 204
+    assert list(database.session.scalars(
+        select(GeoForged.version).order_by(GeoForged.version)
+    )) == [1, 2, 3]
 
 
 def test_sources_require_confirmation_and_preserve_dependencies(front: Any) -> None:

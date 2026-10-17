@@ -1,4 +1,4 @@
-{% from 'macros.html' import icon %}
+{% from 'macros.html' import icon, csrf %}
 <div class="panel-backdrop" data-close-panel></div>
 <aside
     class="side-panel"
@@ -41,17 +41,35 @@
     </h3>
     <div class="version-list">
         {% for version in versions %}
-            <a
-                href="{{ url_for('web.maps', zone=version.id) }}"
-                hx-get="{{ url_for('web.maps', zone=version.id) }}"
-                hx-target="#workspace"
-                hx-push-url="true"
-            >
-                <span class="badge">
-                    v{{ version.version }}
-                </span>
-                {{ version.from_date }}{{ icon('arrow-up-right') }}
-            </a>
+            <div class="version-entry">
+                <a
+                    href="{{ url_for('web.maps', zone=version.id) }}"
+                    hx-get="{{ url_for('web.maps', zone=version.id) }}"
+                    hx-target="#workspace"
+                    hx-push-url="true"
+                >
+                    <span class="badge">
+                        v{{ version.version }}
+                    </span>
+                    {{ version.from_date }}{{ icon('arrow-up-right') }}
+                </a>
+                {% if can('catalogs:manage') %}
+                <form
+                    hx-post="{{ url_for('web.catalog_delete_preview', identifier=version.id) }}"
+                    hx-target="#panel-root"
+                    data-capability="catalogs:manage">
+                    {{ csrf() }}
+                    <input type="hidden" name="scope" value="version">
+                    <button
+                        type="submit"
+                        class="icon-button danger"
+                        title="Supprimer cette version"
+                        aria-label="Supprimer la version {{ version.version }}">
+                        {{ icon('trash-2') }}
+                    </button>
+                </form>
+                {% endif %}
+            </div>
         {% endfor %}
     </div>
     {% if can('zones:edit') %}

@@ -1,5 +1,7 @@
 FROM docker.io/node:24-bookworm-slim AS frontend
+
 WORKDIR /frontend
+
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 COPY scripts/build_front.mjs scripts/build_front.mjs

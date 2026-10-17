@@ -65,9 +65,16 @@ from auth.services import UserService
 from ..common.db_objects.geo_forged import GeoForged, GeoForgedItem
 from ..common.db_objects.geo_zones import GeographicZone
 from ..common.db_objects.users import User as DbUser
-from .exports import export_zone
+from .exports import export_catalog_snapshot, export_zone
 from .geometry import OPERATIONS, feature, polygonal, read_geometry
-from .services import build_zone, preferences, save_zone
+from .services import (
+    build_zone,
+    delete_zone_catalog,
+    delete_zone_version,
+    preferences,
+    restore_snapshot,
+    save_zone,
+)
 from .sources import apply_sources, prepare_sources
 
 web_bp = Blueprint(
@@ -82,10 +89,12 @@ CAPABILITIES = {
     "maps:read": "VIEWER",
     "profile:read": "VIEWER",
     "zones:edit": "EDITOR",
+    "catalogs:manage": "ADMIN",
     "sources:manage": "ADMIN",
     "users:manage": "ADMIN",
 }
 _MESSAGE_PAGE = "fragments/message.html"
+_CATALOGS_ENDPOINT = "web.catalogs"
 
 def _database() -> Session:
     """Get the current database session.
@@ -291,7 +300,7 @@ def signin() -> str | WerkzeugResponse:
     """
     manager: AuthManager = current_app.extensions["auth_manager"]
     if get_current_user() is not None:
-        return redirect(url_for("web.catalogs"))
+        return redirect(url_for(_CATALOGS_ENDPOINT))
     if manager.mode == "external":
         session["web_login"] = True
         return redirect(url_for("auth.login"))
@@ -309,7 +318,7 @@ def index() -> WerkzeugResponse:
         return redirect(url_for("web.signin"))
     if preferences(_database(), _user()).navigation is None:
         return redirect(url_for("web.profile"))
-    return redirect(url_for("web.catalogs"))
+    return redirect(url_for(_CATALOGS_ENDPOINT))
 
 
 @web_bp.get("/catalogs")
@@ -474,6 +483,99 @@ def download(identifier: int, format_name: str) -> Response:
     return response
 
 
+@web_bp.get("/catalogs/<int:identifier>/export/catalog-yaml")
+@require_group("VIEWER")
+def download_catalog_snapshot(identifier: int) -> Response:
+    """Download a faithful YAML snapshot of all versions of the catalog.
+
+    :param identifier: Identifier of a catalog version.
+    :type identifier: int
+
+    :return: Response containing the exported YAML snapshot.
+    :rtype: Response
+    """
+    record = _record(identifier)
+    records = list(_database().scalars(
+        select(GeoForged)
+        .where(GeoForged.code == record.code)
+        .order_by(GeoForged.version)
+    ))
+    content, mime, extension = export_catalog_snapshot(records)
+    response = make_response(content)
+    response.content_type = mime
+    filename = secure_filename(f"{record.code}-catalog") or f"catalog-{identifier}"
+    response.headers["Content-Disposition"] = f'attachment; filename="{filename}.{extension}"'
+    return response
+
+
+@web_bp.post("/catalogs/<int:identifier>/delete-preview")
+@require_group("ADMIN")
+def catalog_delete_preview(identifier: int) -> str:
+    """Display the affected versions and the backup link before deletion.
+
+    :param identifier: Identifier of a catalog version.
+    :type identifier: int
+
+    :return: HTML fragment previewing the deletion.
+    :rtype: str
+    """
+    scope = request.form.get("scope", "")
+    if scope not in {"version", "catalog"}:
+        raise ValueError("La portée de suppression est invalide.")
+    record = _record(identifier)
+    if scope == "version":
+        records = [record]
+        export_url = url_for("web.download", identifier=identifier, format_name="yaml")
+    else:
+        records = list(_database().scalars(
+            select(GeoForged)
+            .where(GeoForged.code == record.code)
+            .order_by(GeoForged.version)
+        ))
+        export_url = url_for(
+            "web.download_catalog_snapshot",
+            identifier=identifier,
+        )
+    return render_template(
+        "fragments/catalog_delete.html",
+        records=records,
+        scope=scope,
+        identifier=identifier,
+        export_url=export_url,
+        cancel_url=(url_for("web.catalog_detail", identifier=identifier)
+                    if scope == "version" else None),
+    )
+
+
+@web_bp.post("/catalogs/<int:identifier>/delete")
+@require_group("ADMIN")
+def delete_catalog_record(identifier: int) -> Response:
+    """Delete a version or a catalog after confirming the snapshot.
+
+    :param identifier: Identifier of a catalog version.
+    :type identifier: int
+
+    :return: Response indicating the result of the deletion.
+    :rtype: Response
+    """
+    if (
+        request.form.get("confirmed") != "yes"
+        or request.form.get("backup_confirmed") != "yes"
+    ):
+        raise ValueError("Download the snapshot and confirm the deletion.")
+    scope = request.form.get("scope", "")
+    record = _record(identifier)
+    if scope == "version":
+        delete_zone_version(_database(), identifier)
+    elif scope == "catalog":
+        delete_zone_catalog(_database(), record.code)
+    else:
+        raise ValueError("The deletion scope is invalid.")
+    response = make_response("", 204)
+    response.headers["HX-Redirect"] = url_for(_CATALOGS_ENDPOINT)
+    return response
+
+
 @web_bp.get("/builder")
 @require_group("EDITOR")
 def builder() -> str:
@@ -543,6 +645,35 @@ def import_yaml() -> Response:
     record = save_zone(_database(), definition, _user())
     response = make_response("", 204)
     response.headers["HX-Redirect"] = url_for("web.maps", zone=record.id)
+    return response
+
+
+@web_bp.post("/catalogs/snapshots/restore")
+@require_group("ADMIN")
+def restore_catalog_snapshot() -> Response:
+    """Atomically restore a version or catalog snapshot.
+
+    :return: Response indicating the result of the restoration.
+    :rtype: Response
+    """
+    upload = request.files.get("snapshot")
+    if upload is None:
+        raise ValueError("Select a YAML snapshot.")
+    content = upload.read(2 * 1024 * 1024 + 1)
+    if len(content) > 2 * 1024 * 1024:
+        raise ValueError("The YAML snapshot exceeds the maximum size of 2 MiB.")
+    try:
+        payload = yaml.safe_load(content)
+    except yaml.YAMLError as error:
+        raise ValueError("The YAML snapshot file is invalid.") from error
+    try:
+        restore_snapshot(_database(), payload)
+        _database().commit()
+    except Exception:
+        _database().rollback()
+        raise
+    response = make_response("", 204)
+    response.headers["HX-Redirect"] = url_for(_CATALOGS_ENDPOINT)
     return response
 
 

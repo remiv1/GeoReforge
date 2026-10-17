@@ -233,7 +233,7 @@ This starts a local GeoReforge instance and persists the database in the `databa
 You can also mount the `config.py` configuration file or the `env.conf` environment file as follows:
 
 ```sh
-docker run --rm -v $(pwd)/database:/var/lib/app -v $(pwd)/config.py:/etc/app/config.py -v $(pwd)/env.conf:/etc/app/env.conf georeforge:latest
+docker run --rm -v "$PWD/database:/var/lib/app:rw,Z,U" -v "$PWD/src/zones.toml:/etc/app/zones.toml:ro:Z" georeforge:latest
 ```
 
 To run the Docker image as a specific user, add the `--user $(id -u):$(id -g)` option to the `docker run` command.

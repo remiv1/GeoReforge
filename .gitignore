@@ -1,9 +1,14 @@
+# environnement, temp & cache
 .venv
 __pycache__/
 *.py[cod]
 tmp/*
 !tmp/.gitkeep
-node_modules/
 .pytest_cache/
+
+# Node modules
+node_modules/
+
+# Builded static files
 src/api/web/static/app.css
 src/api/web/static/vendor/
